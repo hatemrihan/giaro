@@ -1,0 +1,99 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "header": {
+    "title1": "All Giaro Products",
+    "title2": "Available Now",
+    "shopNow": "Shop Now",
+    "coffeePremium": "Premium Coffee",
+    "coffeeArabic": "Arabic Coffee",
+    "coffeeTurkish": "Turkish Coffee"
+  },
+  "categories": {
+    "title": "Catalog",
+    "browse": "Browse Collection",
+    "candy": {
+      "name": "Candy",
+      "desc": "Various candies"
+    },
+    "coffee": {
+      "name": "Coffee",
+      "desc": "Authentic Arabic coffee with traditional flavors"
+    },
+    "dates": {
+      "name": "Dates",
+      "desc": "Finest quality dates"
+    },
+    "honey": {
+      "name": "Honey",
+      "desc": "Natural honey"
+    },
+    "oliveOil": {
+      "name": "Olive Oil",
+      "desc": "Extra virgin olive oil"
+    },
+    "zbeeb": {
+      "name": "Raisins",
+      "desc": "Giaro Raisins"
+    }
+  },
+  "limit": {
+    "title": "Our Offers",
+    "desc": "At Giaro, we believe in providing the best quality for you. Enjoy exclusive offers on a distinct selection of our products. Specially curated to match your refined taste and give you an unforgettable experience in every moment.",
+    "explore": "Explore Our Offers"
+  },
+  "oneword": {
+    "title": "Giaro Offers!"
+  },
+  "productsSection": {
+    "title": "Fill your home with Giaro",
+    "shop": "Shop",
+    "product1": {
+      "subtitle": "Your healthy choice anytime",
+      "titlePart1": "Family Box",
+      "titlePart2": "Honey, Dates, and Nuts"
+    },
+    "product2": {
+      "subtitle": "Pistachio",
+      "titlePart1": "Pistachio",
+      "titlePart2": "Giaro Pistachio"
+    },
+    "product3": {
+      "subtitle": "Dates",
+      "titlePart1": "Premium Dates"
+    }
+  },
+  "footer": {
+    "chooseLanguage": "Choose Language",
+    "selectCountry": "Select Country",
+    "about": "About Us",
+    "contactUs": "Contact Us",
+    "social": "Instagram",
+    "shipping": "Shipping",
+    "returnPolicy": "Return Policy",
+    "startReturn": "Start a Return",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "newsletter": "Newsletter",
+    "emailPlaceholder": "Email Address",
+    "privacyAgree": "I agree to the Privacy Policy",
+    "copyright": "© Giaro. All rights reserved.",
+    "newsletterTitle": "Subscribe to our Newsletter",
+    "newsletterDesc": "Get the latest offers and new products directly in your inbox.",
+    "emailInputPlaceholder": "Enter your email",
+    "subscribe": "Subscribe",
+    "agreeTo": "I agree to the ",
+    "privacyPolicyLink": "Privacy Policy",
+    "errorMissingEmailOrPrivacy": "Please enter your email and agree to the privacy policy",
+    "successSubscribed": "Subscribed successfully!",
+    "errorFailedToSubscribe": "Failed to subscribe. Please try again.",
+    "errorSomethingWentWrong": "Something went wrong. Please try again."
+  },
+  "words": {
+    "fullText": "We select the finest harvests of nature for you... from premium dates and authentic olive oil, to crunchy nuts and rich coffee, so you can taste luxury in every moment."
+  }
+}

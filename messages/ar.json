@@ -1,0 +1,99 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "products": "المنتجات",
+    "about": "من نحن",
+    "contact": "تواصل معنا"
+  },
+  "header": {
+    "title1": "جميع منتجات جيارو",
+    "title2": "متاحة الأن",
+    "shopNow": "تسوّق الآن",
+    "coffeePremium": "قهوة مميزة",
+    "coffeeArabic": "قهوه عربي",
+    "coffeeTurkish": "قهوه تركي"
+  },
+  "categories": {
+    "title": "كتالوج",
+    "browse": "تصفّح المجموعة",
+    "candy": {
+      "name": "حلويات",
+      "desc": "حلويات متنوعه"
+    },
+    "coffee": {
+      "name": "القهوة",
+      "desc": "قهوة عربية أصيلة بنكهات تقليدية"
+    },
+    "dates": {
+      "name": "تمر",
+      "desc": "اجود انواع التمور"
+    },
+    "honey": {
+      "name": "عسل",
+      "desc": "عسل طبيعي"
+    },
+    "oliveOil": {
+      "name": "زيت زيتون",
+      "desc": "زيت زيتون بكر ممتاز"
+    },
+    "zbeeb": {
+      "name": "زبيب",
+      "desc": "زبيب جيارو"
+    }
+  },
+  "limit": {
+    "title": "عروضنا",
+    "desc": "نؤمن في جيارو بتقديم أفضل جودة لكم. استمتع الآن بعروض حصرية على تشكيلة متميزة من منتجاتنا. صُممت خصيصاً لتناسب ذوقك الرفيع ولمنحك تجربة لا تُنسى في كل لحظة.",
+    "explore": "اكتشف العرض الآن"
+  },
+  "oneword": {
+    "title": "عروض جيارو!"
+  },
+  "productsSection": {
+    "title": "املأ بيتك بجيارو",
+    "shop": "تسوق",
+    "product1": {
+      "subtitle": "اختيارك الصحي في كل وقت",
+      "titlePart1": "صندوق العيله",
+      "titlePart2": "من عسل وتمر ومكسرات"
+    },
+    "product2": {
+      "subtitle": "فستق",
+      "titlePart1": "فستق",
+      "titlePart2": "فستق جيارو"
+    },
+    "product3": {
+      "subtitle": "تمور",
+      "titlePart1": "تمر مفتل"
+    }
+  },
+  "footer": {
+    "chooseLanguage": "اختر اللغة",
+    "selectCountry": "اختر الدولة",
+    "about": "من نحن",
+    "contactUs": "تواصل معنا",
+    "social": "انستقرام",
+    "shipping": "الشحن",
+    "returnPolicy": "سياسة الاسترجاع",
+    "startReturn": "ابدأ استرجاع",
+    "privacyPolicy": "سياسة الخصوصية",
+    "terms": "الشروط والأحكام",
+    "newsletter": "النشرة البريدية",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "privacyAgree": "أوافق على سياسة الخصوصية Privacy Policy",
+    "copyright": "©  Giaro. جميع الحقوق محفوظة.",
+    "newsletterTitle": "اشترك في النشرة البريدية",
+    "newsletterDesc": "احصل على آخر العروض والمنتجات الجديدة مباشرة في بريدك الإلكتروني.",
+    "emailInputPlaceholder": "أدخل بريدك الإلكتروني",
+    "subscribe": "اشتراك",
+    "agreeTo": "أوافق على ",
+    "privacyPolicyLink": "سياسة الخصوصية",
+    "errorMissingEmailOrPrivacy": "يرجى إدخال بريدك الإلكتروني والموافقة على سياسة الخصوصية",
+    "successSubscribed": "تم الاشتراك بنجاح!",
+    "errorFailedToSubscribe": "فشل في الاشتراك. يرجى المحاولة مرة أخرى.",
+    "errorSomethingWentWrong": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+  },
+  "words": {
+    "fullText": "ننتقي لك أجود قطاف الطبيعة.. من التمور الفاخرة وزيت الزيتون الأصيل، إلى المكسرات المقرمشة والقهوة الغنية، لتتذوق الفخامة في كل لحظة."
+  }
+}
