@@ -259,7 +259,7 @@ export default function ProductDetailPage() {
                 id: product.id,
                 name: product.name,
                 image: product.main_image,
-                price: matchedVariant?.price || product.price,
+                price: matchedVariant?.price ?? product.price,
                 maxStock: availableStock,
                 variant: cartAttrs ? { attributes: cartAttrs } : undefined,
             }, 1);
@@ -326,7 +326,7 @@ export default function ProductDetailPage() {
                                     </h1>
                                     <div className="flex items-center gap-3 mt-4">
                                         <p className="text-base lg:text-lg text-neutral-900 font-light">
-                                            {(matchedVariant?.price || product.price).toLocaleString('ar-EG')} {currencySymbol}
+                                            {(matchedVariant?.price ?? product.price).toLocaleString('ar-EG')} {currencySymbol}
                                         </p>
                                         {hasDiscount && (
                                             <p className="text-sm text-neutral-400 line-through">

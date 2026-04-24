@@ -2,6 +2,8 @@ import { getAllCategories, createCategory, deleteCategory, updateCategory } from
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/route';
 // ─── Helpers ──────────────────────────────────────────────────
 
 /** Strip HTML tags to prevent XSS in category names. */
@@ -37,6 +39,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const formData = await req.formData();
         const rawName = formData.get('name') as string | null;
         let imageUrl = null;
@@ -116,6 +123,11 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const formData = await req.formData();
         const id = formData.get('id') as string | null;
         const rawName = formData.get('name') as string | null;
@@ -196,6 +208,11 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const id = req.nextUrl.searchParams.get('id');
 
         if (!id || !isValidUUID(id)) {

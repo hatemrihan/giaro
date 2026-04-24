@@ -12,7 +12,7 @@ export default function Header() {
             {/* Full-Screen Video Section with Centered Overlay Text */}
             <section className="relative w-full h-[60dvh] md:h-[100dvh]  overflow-hidden flex items-center justify-center">
                 <Image
-                    src="/images/productone.jpg"
+                    src="/images/newheader.jpeg"
                     width={1920}
                     height={1080}
                     alt="Hero Image"

@@ -74,14 +74,14 @@ export default function Categories() {
 
                                     {/* Image */}
                                     <div className="w-full sm:w-1/2 lg:w-[55%]">
-                                        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl  aspect-[4/3]">
+                                        <div className="relative overflow-hidden aspect-[4/3]">
                                             {category.image_url ? (
                                                 <Image
                                                     src={category.image_url}
                                                     alt={category.name}
                                                     fill
                                                     sizes="(max-width: 640px) 100vw, 55vw"
-                                                    className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                                                    className="object-contain transition-transform duration-500 group-hover:scale-105"
                                                 />
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center">

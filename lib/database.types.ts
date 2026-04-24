@@ -384,6 +384,7 @@ export type Database = {
                     p_product_id:   string;
                     p_quantity:     number;
                     p_variant_name: string | null;
+                    p_variant_attrs: Record<string, string> | null;
                 };
                 Returns: Record<string, unknown>;
             };

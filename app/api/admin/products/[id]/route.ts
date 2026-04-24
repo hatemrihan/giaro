@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProductById, getProductBySlug, updateProduct, deleteProduct } from '@/models/product';
 import { revalidatePath } from 'next/cache';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/route';
 
 // Helper to determine if the string is a valid UUID
 function isValidUUID(id: string): boolean {
@@ -44,6 +46,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // PUT - Update an existing product
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { id: identifier } = await params;
 
         if (!identifier) {
@@ -125,6 +132,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 // PATCH - Toggle featured status of a product
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { id: identifier } = await params;
 
         if (!identifier) {
@@ -162,6 +174,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 // DELETE - Delete a product
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { id: identifier } = await params;
 
         if (!identifier) {

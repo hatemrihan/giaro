@@ -63,6 +63,55 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // ── Server-side price verification ───────────────────
+        // Fetch real prices from DB in a single batch query
+        const itemProductIds = body.items.map(i => i.productId);
+        
+        const { data: dbProducts, error: dbError } = await supabaseAdmin
+            .from('products')
+            .select('id, name, price, variants')
+            .in('id', itemProductIds);
+
+        if (dbError) {
+            console.error('[POST /api/orders] DB lookup failed:', dbError.message, '| IDs:', itemProductIds);
+            return NextResponse.json(
+                { success: false, error: 'خطأ في التحقق من المنتجات' },
+                { status: 500 },
+            );
+        }
+
+        // Build a lookup map: productId → DB product
+        const productMap = new Map((dbProducts ?? []).map(p => [p.id, p]));
+
+        const verifiedItems = body.items.map(item => {
+            const dbProduct = productMap.get(item.productId);
+
+            if (!dbProduct) {
+                // Product not found — log for debugging but DON'T block the order.
+                // This can happen if the cart has a stale ID. Use the client price as fallback.
+                console.warn(`[POST /api/orders] Product not in DB, using client price: "${item.name}" (ID: ${item.productId})`);
+                return item;
+            }
+
+            // Determine the correct price: variant price or base price
+            let verifiedPrice = dbProduct.price;
+            const variants = dbProduct.variants as { attributes?: Record<string, string>; price?: number }[] | null;
+
+            if (item.attributes && variants?.length) {
+                const attrKeys = Object.keys(item.attributes);
+                const matchedVariant = variants.find(v => {
+                    const vKeys = Object.keys(v.attributes || {});
+                    return attrKeys.length === vKeys.length &&
+                        attrKeys.every(k => v.attributes?.[k] === item.attributes![k]);
+                });
+                if (matchedVariant?.price != null) {
+                    verifiedPrice = matchedVariant.price;
+                }
+            }
+
+            return { ...item, price: verifiedPrice };
+        });
+
         // ── Atomic stock deduction with rollback ────────────
         // Each deduct_stock call uses FOR UPDATE row lock.
         // If ANY item fails, we restore all previously deducted items.
@@ -80,12 +129,13 @@ export async function POST(req: NextRequest) {
             });
         };
 
-        for (const item of body.items) {
+        for (const item of verifiedItems) {
             try {
                 const { error } = await supabaseAdmin.rpc('deduct_stock', {
                     p_product_id: item.productId,
                     p_quantity: item.quantity,
                     p_variant_name: item.color ?? null,
+                    p_variant_attrs: item.attributes ?? null,
                 });
 
                 if (error) {
@@ -123,10 +173,13 @@ export async function POST(req: NextRequest) {
         let promoCode: string | undefined;
         let discountAmount = 0;
 
+        // Pre-calculate verified subtotal for promo validation
+        const verifiedSubtotal = verifiedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
         if (body.promoCode) {
             try {
                 const { claimPromo } = await import('@/models/promo');
-                const result = await claimPromo(body.promoCode, body.subtotal);
+                const result = await claimPromo(body.promoCode, verifiedSubtotal);
                 promoCode = body.promoCode;
                 discountAmount = result.discountAmount;
             } catch (promoError) {
@@ -139,8 +192,8 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // ── Recalculate total (server-side) ─────────────────
-        const subtotal = body.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+        // ── Recalculate total from verified prices (server-side) ──
+        const subtotal = verifiedSubtotal;
         const shippingCost = body.shippingCost || 0;
         const codFee = body.paymentMethod === 'cashOnDelivery' ? (body.codFee || 0) : 0;
         const total = subtotal + shippingCost + codFee - discountAmount;
@@ -170,7 +223,7 @@ export async function POST(req: NextRequest) {
                     lng:     body.lng,
                 },
                 governorate:            body.customer.governorate,
-                items:                  body.items.map(item => ({
+                items:                  verifiedItems.map(item => ({
                     productId: item.productId,
                     name:      item.name,
                     price:     item.price,
@@ -297,6 +350,7 @@ export async function PATCH(req: NextRequest) {
                     productId: string;
                     quantity: number;
                     color?: string;
+                    attributes?: Record<string, string>;
                 }[];
 
                 // Restore stock for all items in parallel with logging for failures
@@ -305,6 +359,7 @@ export async function PATCH(req: NextRequest) {
                         item.productId,
                         item.quantity,
                         item.color,
+                        item.attributes,
                     ))
                 );
 
