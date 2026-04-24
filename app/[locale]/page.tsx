@@ -5,7 +5,6 @@ import LimitOffer from './../sections/limit';
 import Footer from './../sections/footer';
 import Products from '../sections/products';
 import Words from '../sections/words';
-import OneWord from '../sections/oneword';
 
 export default function Home() {
   return (
@@ -13,7 +12,6 @@ export default function Home() {
       <Nav />
       <Header />
       <Categories />
-      <OneWord />
       <LimitOffer />
       <Products />
       <Words />

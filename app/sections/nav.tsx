@@ -358,18 +358,20 @@ export default function Nav() {
                   </div>
 
                   {/* Mobile Links */}
-                  <div className="flex-1 px-3 py-4 space-y-1">
-                    {NAV_LINKS.map((link) => (
+                  <div className="flex-1 px-3 py-4 space-y-2 mt-4">
+                    {NAV_LINKS.map((link, index) => (
                       <SheetClose key={link.href} asChild>
                         <Link
                           href={link.href}
                           className="
                             flex items-center gap-3 px-4 py-3 rounded-xl
-                            text-base font-medium text-neutral-700
+                            text-lg font-semibold text-neutral-700
                             transition-all duration-200
-                            hover:bg-neutral-50 hover:text-neutral-950
+                            hover:bg-neutral-50 hover:text-neutral-950 hover:pl-6
                             active:scale-[0.98]
+                            animate-in fade-in slide-in-from-left-8 duration-500
                           "
+                          style={{ animationFillMode: 'both', animationDelay: `${(index + 1) * 100}ms` }}
                         >
                           {link.label}
                         </Link>
