@@ -180,6 +180,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         revalidatePath('/shop');
         revalidatePath('/');
         revalidatePath(`/product/${product.slug}`);
+        revalidatePath('/api/products');
+        revalidatePath('/api/categories');
+        revalidatePath('/admin/products');
 
         return NextResponse.json({
             success: true,

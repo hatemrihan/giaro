@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
         const settings = await getStoreSettings();
 
-        const response = NextResponse.json({
+        return NextResponse.json({
             success: true,
             products,
             categories: categoriesResp,
@@ -53,11 +53,11 @@ export async function GET(req: NextRequest) {
                 total,
                 totalPages: Math.ceil(total / limit),
             },
+        }, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+            },
         });
-
-        // Cache for 60s, revalidate in background
-        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
-        return response;
     } catch (error) {
         console.error('[GET /api/products]', error);
         return NextResponse.json(

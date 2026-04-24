@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import {
     getAllOffersAdmin,
     createOffer,
@@ -30,6 +31,9 @@ export async function POST(req: NextRequest) {
             show_pages: body.show_pages ?? ['offers'],
             display_order: body.display_order ?? 0,
         });
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath('/api/offers');
         return NextResponse.json(offer, { status: 201 });
     } catch (error) {
         console.error('❌ Admin offer create error:', error);
@@ -55,6 +59,9 @@ export async function PATCH(req: NextRequest) {
         if (!updated) {
             return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
         }
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath('/api/offers');
         return NextResponse.json(updated);
     } catch (error) {
         console.error('❌ Admin offer update error:', error);
@@ -69,6 +76,9 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: 'Missing offer id' }, { status: 400 });
         }
         await deleteOffer(body.id);
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath('/api/offers');
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('❌ Admin offer delete error:', error);

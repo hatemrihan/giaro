@@ -115,7 +115,7 @@ export default function Nav() {
     setSearchLoading(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, { cache: 'no-store' });
         const data = await res.json();
         if (data.success) {
           setSearchResults(data.products || []);

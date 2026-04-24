@@ -20,12 +20,10 @@ export async function GET() {
     try {
         const categories = await getAllCategories();
 
-        const response = NextResponse.json({ success: true, categories });
-        response.headers.set(
-            'Cache-Control',
-            'public, s-maxage=300, stale-while-revalidate=600',
+        return NextResponse.json(
+            { success: true, categories },
+            { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } },
         );
-        return response;
     } catch (error) {
         console.error('[GET /api/admin/categories]', error);
         return NextResponse.json(
@@ -217,6 +215,9 @@ export async function DELETE(req: NextRequest) {
         }
 
         revalidatePath('/admin/categories');
+        revalidatePath('/');
+        revalidatePath('/shop');
+        revalidatePath('/api/categories');
 
         return NextResponse.json({ success: true });
     } catch (error) {

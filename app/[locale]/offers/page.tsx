@@ -21,7 +21,7 @@ export default function OffersPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/offers')
+        fetch('/api/offers', { cache: 'no-store' })
             .then(res => res.json())
             .then((data: Offer[]) => {
                 setOffers(data);

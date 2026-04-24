@@ -74,7 +74,7 @@ export default function CheckoutPage() {
 
     // ── Fetch governorate pricing ─────────────────────────────
     useEffect(() => {
-        fetch('/api/governorate-pricing')
+        fetch('/api/governorate-pricing', { cache: 'no-store' })
             .then(r => r.json())
             .then(data => {
                 if (data.success) setGovernoratePricing(data.pricing);
@@ -84,7 +84,7 @@ export default function CheckoutPage() {
 
     // ── Fetch payment settings ────────────────────────────────
     useEffect(() => {
-        fetch('/api/admin/payment-settings')
+        fetch('/api/admin/payment-settings', { cache: 'no-store' })
             .then(r => r.json())
             .then(data => {
                 if (data.success) setPaymentSettings(data.settings);
@@ -101,7 +101,7 @@ export default function CheckoutPage() {
         const validateStock = async () => {
             try {
                 for (const item of state.items) {
-                    const res = await fetch(`/api/products/stock?id=${item.id}`);
+                    const res = await fetch(`/api/products/stock?id=${item.id}`, { cache: 'no-store' });
                     if (!res.ok) continue;
                     const data = await res.json();
                     if (!data.success) continue;

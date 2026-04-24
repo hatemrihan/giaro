@@ -77,7 +77,7 @@ export function useShop({
             params.set('sort', sort);
             if (filters.category) params.set('category', filters.category);
 
-            const res = await fetch(`/api/products?${params.toString()}`);
+            const res = await fetch(`/api/products?${params.toString()}`, { cache: 'no-store' });
             const data = await res.json();
 
             if (data.success) {

@@ -23,9 +23,10 @@ export async function GET(req: NextRequest) {
             points = await getActiveDropPoints();
         }
 
-        const response = NextResponse.json({ success: true, points });
-        response.headers.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
-        return response;
+        return NextResponse.json(
+            { success: true, points },
+            { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } },
+        );
     } catch (error) {
         console.error('[GET /api/drop-points]', error);
         return NextResponse.json(

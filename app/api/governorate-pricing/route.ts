@@ -9,9 +9,10 @@ export async function GET() {
     try {
         const pricing = await getAllGovernoratePricing();
 
-        const response = NextResponse.json({ success: true, pricing });
-        response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-        return response;
+        return NextResponse.json(
+            { success: true, pricing },
+            { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } },
+        );
     } catch (error) {
         console.error('[GET /api/governorate-pricing]', error);
         return NextResponse.json(

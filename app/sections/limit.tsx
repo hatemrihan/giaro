@@ -19,7 +19,7 @@ export default function LimitOffer() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/offers?page=homepage')
+        fetch('/api/offers?page=homepage', { cache: 'no-store' })
             .then(res => res.json())
             .then((data: Offer[]) => {
                 setOffers(data);

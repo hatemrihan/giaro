@@ -109,7 +109,8 @@ export default function ProductDetailPage() {
             try {
                 const slug = params.slug as string;
                 const res = await fetch(`/api/products/${slug}`, {
-                    signal: controller.signal
+                    signal: controller.signal,
+                    cache: 'no-store',
                 });
                 if (!res.ok) { router.push(`/${localeRef.current}/shop`); return; }
 
@@ -153,7 +154,7 @@ export default function ProductDetailPage() {
 
         const interval = setInterval(async () => {
             try {
-                const res = await fetch(`/api/products/stock?id=${product.id}`);
+                const res = await fetch(`/api/products/stock?id=${product.id}`, { cache: 'no-store' });
                 if (!res.ok) return;
                 const data = await res.json();
 

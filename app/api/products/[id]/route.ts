@@ -29,15 +29,14 @@ export async function GET(
 
         const settings = await getStoreSettings();
 
-        const response = NextResponse.json({
+        return NextResponse.json({
             success: true,
             product,
             relatedProducts: related,
             lowStockThreshold: settings.low_stock_threshold,
+        }, {
+            headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' },
         });
-
-        response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
-        return response;
     } catch (error) {
         console.error('[GET /api/products/[id]]', error);
         return NextResponse.json(
