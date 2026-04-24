@@ -249,7 +249,7 @@ export default function CheckoutPage() {
                 clearCart();
                 router.push(`/${locale}/checkout/confirmation?orderId=${data.order.orderId}`);
             } else {
-                setSubmitError(data.error || 'فشل في إنشاء الطلب');
+                setSubmitError(data.error || ' فشل في إنشاء الطلب');
             }
         } catch {
             setSubmitError('حدث خطأ. يرجى المحاولة مرة أخرى.');
