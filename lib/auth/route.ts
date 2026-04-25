@@ -20,7 +20,7 @@ declare module "next-auth/jwt" {
 // Falls back to hardcoded list if env var is not set.
 const FALLBACK_ADMIN_EMAILS = ["hatemrihan100@gmail.com", "sherifahmed19.sa@gmail.com", "yassenwassem2009@gmail.com"];
 
-function getAdminEmails(): string[] {
+export function getAdminEmails(): string[] {
     const envEmails = process.env.ADMIN_EMAILS;
     if (envEmails) {
         return envEmails.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
