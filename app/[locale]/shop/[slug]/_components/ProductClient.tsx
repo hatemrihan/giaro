@@ -254,7 +254,7 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                     <h2 className="text-xl font-medium text-neutral-800 mb-4">المنتج غير موجود</h2>
                     <Link
                         href={`/${locale}/shop`}
-                        className="inline-block bg-neutral-900 text-white px-6 py-3 text-sm font-medium hover:bg-neutral-800 transition-colors cursor-pointer"
+                        className="inline-block bg-[#B6D0E2] text-black px-6 py-3 text-sm font-medium transition-colors cursor-pointer"
                     >
                         العودة إلى المتجر
                     </Link>
@@ -339,8 +339,8 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                                                             setSelectedImageIndex(0);
                                                         }}
                                                         className={`px-4 py-2 text-sm border transition-all duration-200 cursor-pointer ${isSelected
-                                                            ? 'border-neutral-900 bg-neutral-900 text-white'
-                                                            : 'border-neutral-300 text-neutral-700 hover:border-neutral-900'
+                                                            ? 'border-[#B6D0E2] bg-[#B6D0E2] text-black'
+                                                            : 'border-neutral-300 text-neutral-700 hover:border-[#B6D0E2]'
                                                             }`}
                                                     >
                                                         {value}
@@ -362,7 +362,7 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                                     disabled={isAddingToCart || currentStock <= 0}
                                     className={`w-full py-4 text-sm font-medium tracking-wide transition-colors cursor-pointer ${currentStock <= 0
                                         ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                                        : 'bg-neutral-900 hover:bg-neutral-800 text-white'
+                                        : 'bg-[#B6D0E2] text-black'
                                         }`}
                                 >
                                     {isAddingToCart
@@ -432,8 +432,8 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                                                     });
                                                 }}
                                                 className={`w-full aspect-square overflow-hidden border transition-all duration-200 bg-white flex items-center justify-center cursor-pointer ${selectedImageIndex === index
-                                                    ? 'border-neutral-900 border-2'
-                                                    : 'border-neutral-200 hover:border-neutral-400'
+                                                    ? 'border-[#B6D0E2] border-2'
+                                                    : 'border-neutral-200 hover:border-[#B6D0E2]'
                                                     }`}
                                             >
                                                 <Image
@@ -497,7 +497,7 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                                                     aria-label={`صورة ${index + 1}`}
                                                     aria-current={selectedImageIndex === index ? 'true' : undefined}
                                                     className={`h-1.5 rounded-full transition-all duration-200 cursor-pointer ${selectedImageIndex === index
-                                                        ? 'bg-neutral-900 w-5'
+                                                        ? 'bg-[#B6D0E2] w-5'
                                                         : 'bg-neutral-300 w-1.5'
                                                         }`}
                                                 />
@@ -514,7 +514,7 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                                                 key={src}
                                                 onClick={() => setSelectedImageIndex(index)}
                                                 className={`relative aspect-square overflow-hidden border transition-all duration-200 bg-white flex items-center justify-center cursor-pointer ${selectedImageIndex === index
-                                                    ? 'border-neutral-900 border-2'
+                                                    ? 'border-[#B6D0E2] border-2'
                                                     : 'border-neutral-200'
                                                     }`}
                                             >

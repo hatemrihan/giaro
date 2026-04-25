@@ -149,3 +149,22 @@
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--foreground) 30%, transparent);
 }
+
+@keyframes marquee-infinite {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-infinite {
+  animation: marquee-infinite 12s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+[dir="rtl"] .animate-marquee-infinite {
+  animation-direction: reverse;
+}

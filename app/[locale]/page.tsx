@@ -6,6 +6,7 @@ import LimitOffer from './../sections/limit';
 import Footer from './../sections/footer';
 import Products from '../sections/products';
 import Words from '../sections/words';
+import MovingWords from '../sections/MovingWords';
 
 const BASE_URL = 'https://giaromart.com';
 
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const isAr = locale === 'ar';
 
     const title = isAr ? 'جيارو — منتجات غذائية فاخرة' : 'Giaro — Premium Food Products';
-    const description = isAr 
+    const description = isAr
         ? 'منتجات غذائية فاخرة — تصنيفات مختارة، منتجات طازجة، توصيل حتى باب بيتك.'
         : 'Premium food products — curated categories, fresh products, delivered to your door.';
 
@@ -83,6 +84,7 @@ export default async function Home({ params }: Props) {
             <Nav />
             <Header />
             <Categories />
+            <MovingWords />
             <LimitOffer />
             <Products />
             <Words />

@@ -2,8 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface Offer {
     id: string;
@@ -14,9 +13,10 @@ interface Offer {
 }
 
 export default function LimitOffer() {
-    const t = useTranslations('limit');
     const [offers, setOffers] = useState<Offer[]>([]);
     const [loading, setLoading] = useState(true);
+    const [inView, setInView] = useState(false);
+    const sectionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetch('/api/offers?page=homepage', { cache: 'no-store' })
@@ -28,76 +28,82 @@ export default function LimitOffer() {
             .catch(() => setLoading(false));
     }, []);
 
+    // ── IntersectionObserver for in-view animation ─────────────
+    useEffect(() => {
+        const el = sectionRef.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setInView(true);
+                    observer.disconnect();
+                }
+            },
+            { threshold: 0.15 }
+        );
+
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [loading]);
+
     if (!loading && offers.length === 0) return null;
 
-    const offer = offers[0];
-
     return (
-        <section className="bg-white relative w-full overflow-hidden">
+        <section className="w-full py-10 sm:py-16">
             {loading ? (
                 <div className="flex items-center justify-center py-20">
                     <div className="w-5 h-5 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
                 </div>
             ) : (
-                <>
-                    <div className="flex flex-col md:flex-row items-stretch w-full">
-                        <div className="w-full md:w-[55%] flex items-center justify-center pt-10 pb-4 px-6 sm:py-20 md:px-12 lg:px-20 order-1 md:order-none">
-                            <div className="w-full max-w-lg flex flex-col items-start gap-4 sm:gap-6">
-                                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-neutral-900 tracking-wider uppercase mb-2">
-                                    {offer?.title || t('title')}
-                                </h2>
-                                <p className="text-sm sm:text-base text-neutral-700 leading-relaxed">
-                                    {offer?.description || t('desc')}
-                                </p>
-                                <Link
-                                    href={offer?.link || '/shop'}
-                                    className="inline-block border-b border-neutral-900 pb-1 mt-4 text-xs sm:text-sm font-semibold text-neutral-900 transition-colors hover:text-neutral-600 hover:border-neutral-600 uppercase tracking-widest"
-                                >
-                                    {t('explore')}
-                                </Link>
-                            </div>
-                        </div>
-                        <div className="w-full md:w-[45%] relative min-h-[350px] sm:min-h-[450px] lg:min-h-[500px] order-2 md:order-none">
-                            <Image
-                                src={offer?.image || '/images/two.jpg'}
-                                alt={offer?.title || 'عرض لفترة محدودة'}
-                                fill
-                                className="object-cover object-center mix-blend-multiply"
-                                sizes="(max-width: 768px) 100vw, 45vw"
-                            />
-                        </div>
-                    </div>
+                <div ref={sectionRef} className="px-6 sm:px-10 lg:px-16 max-w-6xl mx-auto">
+                    {/* Center-aligned title */}
+                    {/* <h2
+                        className={`text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 tracking-tight text-center mb-14 sm:mb-20 transition-all duration-700 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+                    >
+                        العروض
+                    </h2> */}
 
-                    {offers.slice(1).map(o => (
-                        <div key={o.id} className="flex flex-col md:flex-row-reverse items-stretch w-full border-t border-neutral-100">
-                            <div className="w-full md:w-[55%] flex items-center justify-center pt-10 pb-4 px-6 sm:py-20 md:px-12 lg:px-20">
-                                <div className="w-full max-w-lg flex flex-col items-start gap-4 sm:gap-6">
-                                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-medium text-neutral-900 tracking-wider uppercase mb-2">
-                                        {o.title}
-                                    </h2>
-                                    <p className="text-sm sm:text-base text-neutral-700 leading-relaxed">
-                                        {o.description}
-                                    </p>
-                                    <Link
-                                        href={o.link || '/shop'}
-                                        className="inline-block border-b border-neutral-900 pb-1 mt-4 text-xs sm:text-sm font-semibold text-neutral-900 transition-colors hover:text-neutral-600 hover:border-neutral-600 uppercase tracking-widest"
-                                    >
-                                        {t('explore')}
-                                    </Link>
+                    {/* Scroll on mobile, 3-col grid on desktop */}
+                    <div
+                        className="flex lg:grid lg:grid-cols-3 gap-5 sm:gap-6 overflow-auto lg:overflow-visible select-none cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+                        style={{ scrollbarWidth: 'none' }}
+                    >
+                        {offers.map((offer, index) => (
+                            <Link
+                                key={offer.id}
+                                href={offer.link || '/shop'}
+                                className={`group block shrink-0 w-[70vw] sm:w-[55vw] lg:w-auto transition-all duration-700 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                                style={{ transitionDelay: inView ? `${index * 120}ms` : '0ms' }}
+                                draggable={false}
+                            >
+                                {/* Title + description above image */}
+                                <div className="mb-3 px-1">
+                                    <h3 className="text-sm sm:text-base font-bold text-neutral-900 group-hover:text-neutral-600 transition-colors duration-300 leading-tight">
+                                        {offer.title}
+                                    </h3>
+                                    {offer.description && (
+                                        <p className="text-[11px] sm:text-xs text-neutral-400 mt-1 line-clamp-1">
+                                            {offer.description}
+                                        </p>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="w-full md:w-[45%] relative min-h-[350px] sm:min-h-[450px] lg:min-h-[500px]">
-                                <Image
-                                    src={o.image || '/images/two.jpg'}
-                                    alt={o.title}
-                                    fill
-                                    className="object-cover object-center mix-blend-multiply"
-                                    sizes="(max-width: 768px) 100vw, 45vw"
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </>
+
+                                {/* Image */}
+                                <div className="relative w-full aspect-[5/4] overflow-hidden">
+                                    <Image
+                                        src={offer.image || '/images/two.jpg'}
+                                        alt={offer.title}
+                                        fill
+                                        className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                                        sizes="(max-width: 640px) 70vw, (max-width: 1024px) 55vw, 33vw"
+                                        draggable={false}
+                                    />
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
             )}
         </section>
     );

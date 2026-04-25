@@ -99,10 +99,7 @@ export default function AboutPage() {
                     {/* ── Upper area: Name + Photo ── */}
                     <div className="px-6 md:px-14 pt-10 md:pt-14 pb-8 md:pb-12">
 
-                        {/* Brand name — large, top-right (RTL) */}
-                        <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] font-medium text-black leading-[1.1] tracking-tight mb-12 md:mb-20 text-right">
-                            مؤسس جيارو
-                        </h2>
+
 
                         {/* Portrait photo — Left on mobile, Centered on desktop */}
                         <div className="flex justify-end md:justify-center">
@@ -138,14 +135,14 @@ export default function AboutPage() {
                             {/* Text column 1 */}
                             <div>
                                 <p className="text-[13px] md:text-[14px] leading-[1.8] text-black/80 font-light">
-                                    اكتب هنا ،هاتلي احط صوره لو عايز
+                                    في جيارو، لا نقدم مجرد منتجات، بل نشارككم إرثاً من الأصالة ونبضاً من الطبيعة السخية. بدأت رحلتنا بشغف عميق نحو البحث عن أنقى الكنوز التي تجود بها الأرض، لنضع بين أيديكم خلاصة العناية والجودة والطعم الذي لا يُنسى. نحن نؤمن بأن كل تفصيلة تصنع فارقاً، وأن سعينا الدائم للكمال هو ما يمنحنا هويتنا.
                                 </p>
                             </div>
 
                             {/* Text column 2 */}
                             <div>
                                 <p className="text-[13px] md:text-[14px] leading-[1.8] text-black/80 font-light">
-                                    نتخصص في تقديم قطع أزياء عصرية تواكب أحدث الاتجاهات العالمية مع لمسة محلية أصيلة. عملنا على مشاريع متنوعة تُبرز جمال التصميم وتعقيد الحرفة، لأن كل قطعة تحكي قصة.
+                                    رؤيتنا تتجاوز حدود الجودة المعتادة؛ نحن نسعى لنكون جزءاً من تفاصيل يومكم، ورفيقاً في لحظاتكم السعيدة. من أجود أنواع العسل والتمور والمكسرات، ننتقي لكم بعناية فائقة ما يغذي الجسد ويسعد الروح، لأننا نرى أن ثقتكم هي أغلى ما نملك، وهي الدافع الذي يجعلنا نتفوق على أنفسنا كل يوم.
                                 </p>
                             </div>
                         </div>

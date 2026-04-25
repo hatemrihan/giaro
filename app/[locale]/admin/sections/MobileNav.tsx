@@ -15,6 +15,7 @@ import {
     LogOut,
     Menu,
     X,
+    Percent,
 } from "lucide-react";
 
 import {
@@ -44,6 +45,7 @@ const NAV_ITEMS: NavItem[] = [
     { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { title: "Returns", href: "/admin/return", icon: RotateCcw },
     { title: "Contacts", href: "/admin/contacts", icon: Mail },
+    {title:"Bundles", href:"/admin/offers", icon:Percent}
 ];
 
 // ─── Component ────────────────────────────────────────────────
