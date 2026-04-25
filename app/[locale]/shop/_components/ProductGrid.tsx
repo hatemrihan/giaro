@@ -52,21 +52,21 @@ export function ProductGrid({ products, locale, loading, viewMode, lowStockThres
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                 </div>
-                <h3 className="text-[15px] font-medium text-neutral-600 mb-1">لا توجد منتجات</h3>
-                <p className="text-[13px] text-neutral-400">لم يتم العثور على منتجات بالفلاتر المحددة</p>
+                <h3 className="text-[15px] font-medium text-neutral-600 mb-1">{locale === 'ar' ? 'لا توجد منتجات' : 'No products found'}</h3>
+                <p className="text-[13px] text-neutral-400">{locale === 'ar' ? 'لم يتم العثور على منتجات بالفلاتر المحددة' : 'No products match the selected filters'}</p>
             </div>
         );
     }
 
-    // ── Grid ──────────────────────────────────────────────────────
     return (
         <div className={gridClass}>
-            {products.map((product) => (
+            {products.map((product, index) => (
                 <ProductCard
                     key={product.id}
                     product={product}
                     locale={locale}
                     lowStockThreshold={lowStockThreshold}
+                    priority={index < 4}
                 />
             ))}
         </div>

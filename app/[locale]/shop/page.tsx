@@ -1,165 +1,119 @@
-'use client';
+import { Metadata } from 'next';
+import { ShopClient } from './_components/ShopClient';
 
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
-import Nav from '../../sections/nav';
-import Footer from '../../sections/footer';
-import { useShop } from './_hooks/useShop';
-import { ShopControls } from './_components/ShopControls';
-import { ProductGrid } from './_components/ProductGrid';
-import { ShopPagination } from './_components/ShopPagination';
-import type { SortOption, ShopFilters, ViewMode } from './_types/shop';
+const BASE_URL = 'https://giaromart.com';
 
-/**
- * /[locale]/shop — Main shop page
- *
- * Architecture:
- *   - URL-driven state for category, page, sort
- *   - Client-side multi-filter (color, size, availability) via useShop hook
- *   - Modular components: ShopControls, ProductGrid, ShopPagination
- *   - All text in Arabic (customer-facing)
- */
-export default function ShopPage() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
+type Props = {
+    params:       Promise<{ locale: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-    const locale = useMemo(() => {
-        const match = pathname.match(/^\/(ar|en)/);
-        return match ? match[1] : 'ar';
-    }, [pathname]);
+function getCategoryFromParams(
+    sp: { [key: string]: string | string[] | undefined }
+): string | null {
+    return typeof sp.category === 'string' ? sp.category : null;
+}
 
-    // Read initial state from URL
-    const urlCategory = searchParams.get('category') || null;
-    const urlPage = parseInt(searchParams.get('page') || '1', 10);
-    const urlSort = (searchParams.get('sort') as SortOption) || 'newest';
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+    const { locale }        = await params;
+    const resolvedSP        = await searchParams;
+    const category          = getCategoryFromParams(resolvedSP);
+    const isAr              = locale === 'ar';
+    const categoryParam     = category ? `?category=${encodeURIComponent(category)}` : '';
 
-    const {
-        products,
-        categories,
-        pagination,
-        loading,
-        sort,
-        filters,
-        viewMode,
-        availableColors,
-        availableSizes,
-        lowStockThreshold,
-        setSort,
-        setFilters,
-        setPage,
-        setViewMode,
-    } = useShop({
-        initialCategory: urlCategory,
-        initialPage: urlPage,
-    });
+    const title = category
+        ? `${category} | Giaro`
+        : isAr
+            ? 'تسوق المنتجات الفاخرة | Giaro'
+            : 'Shop Premium Products | Giaro';
 
-    // Sync URL → hook when URL params change externally
-    useEffect(() => {
-        if (urlCategory !== filters.category) setFilters({ category: urlCategory });
-    }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+    const description = isAr
+        ? `اكتشف أحدث مجموعة من ${category || 'المنتجات الفاخرة'} في مصر. تسوق الآن من Giaro.`
+        : `Discover the latest collection of ${category || 'premium products'} in Egypt. Shop now at Giaro.`;
 
-    useEffect(() => {
-        if (urlSort !== sort) setSort(urlSort);
-    }, [urlSort]); // eslint-disable-line react-hooks/exhaustive-deps
+    const url = `${BASE_URL}/${locale}/shop${categoryParam}`;
 
-    useEffect(() => {
-        if (urlPage !== pagination.page) setPage(urlPage);
-    }, [urlPage]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // ── URL update helper ───────────────────────────────────────
-    const updateURL = (params: Record<string, string | null>) => {
-        const current = new URLSearchParams(searchParams.toString());
-        Object.entries(params).forEach(([key, value]) => {
-            if (value) current.set(key, value);
-            else current.delete(key);
-        });
-        const qs = current.toString();
-        router.push(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+    return {
+        title,
+        description,
+        robots: {
+            index: true,
+            follow: true,
+            googleBot: {
+                index: true,
+                follow: true,
+                'max-image-preview': 'large',
+                'max-snippet': -1,
+            },
+        },
+        alternates: {
+            canonical:  url,
+            languages: {
+                ar:          `${BASE_URL}/ar/shop${categoryParam}`,
+                en:          `${BASE_URL}/en/shop${categoryParam}`,
+                'x-default': `${BASE_URL}/ar/shop${categoryParam}`,
+            },
+        },
+        openGraph: {
+            title,
+            description,
+            url,
+            siteName: 'Giaro',
+            type:     'website',
+            locale:   isAr ? 'ar_EG' : 'en_US',
+            images: [{
+                url:    `${BASE_URL}/og-default.jpg`,
+                width:  1200,
+                height: 630,
+                alt:    title,
+            }],
+        },
+        twitter: {
+            card:        'summary_large_image',
+            title,
+            description,
+            images:      [`${BASE_URL}/og-default.jpg`],
+        },
     };
+}
 
-    // ── Handlers ────────────────────────────────────────────────
-    const handleFiltersChange = (partial: Partial<ShopFilters>) => {
-        setFilters(partial);
-        // Only category goes into URL (shareable)
-        if ('category' in partial) {
-            updateURL({
-                category: partial.category || null,
-                page: null, // reset page
-            });
-        }
+export default async function ShopPage({ params, searchParams }: Props) {
+    const { locale }    = await params;
+    const resolvedSP    = await searchParams;
+    const category      = getCategoryFromParams(resolvedSP);
+    const isAr          = locale === 'ar';
+    const categoryParam = category ? `?category=${encodeURIComponent(category)}` : '';
+
+    const title = category || (isAr ? 'المتجر' : 'Shop');
+    const description = isAr
+        ? `تسوق أحدث مجموعة من ${category || 'المنتجات الفاخرة'} في Giaro.`
+        : `Shop the latest collection of ${category || 'premium products'} at Giaro.`;
+
+    const jsonLd = {
+        '@context':   'https://schema.org',
+        '@type':      'CollectionPage',
+        name:          title,
+        description,
+        url:          `${BASE_URL}/${locale}/shop${categoryParam}`,
+        inLanguage:    locale,
+        publisher: {
+            '@type': 'Organization',
+            name:    'Giaro',
+            url:      BASE_URL,
+            logo: {
+                '@type': 'ImageObject',
+                url:     `${BASE_URL}/icon.png`,
+            },
+        },
     };
-
-    const handleSortChange = (s: SortOption) => {
-        setSort(s);
-        updateURL({ sort: s, page: null });
-    };
-
-    const handleViewModeChange = (v: ViewMode) => {
-        setViewMode(v);
-    };
-
-    const handlePageChange = (p: number) => {
-        setPage(p);
-        updateURL({ page: p > 1 ? String(p) : null });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const pageTitle = filters.category || 'المتجر';
 
     return (
-        <section className="min-h-screen bg-white">
-            <Nav />
-            <div className="pt-24 pb-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Controls: breadcrumb + view + filter */}
-                    <ShopControls
-                        locale={locale}
-                        categories={categories}
-                        filters={filters}
-                        sort={sort}
-                        viewMode={viewMode}
-                        total={pagination.total}
-                        availableColors={availableColors}
-                        availableSizes={availableSizes}
-                        onFiltersChange={handleFiltersChange}
-                        onSortChange={handleSortChange}
-                        onViewModeChange={handleViewModeChange}
-                    />
-
-                    {/* Title */}
-                    <div className="text-center mb-10">
-                        <h1 className="text-2xl font-light tracking-wide text-neutral-900">
-                            {pageTitle}
-                        </h1>
-                    </div>
-
-                    {/* Products */}
-                    <ProductGrid
-                        products={products}
-                        locale={locale}
-                        loading={loading}
-                        viewMode={viewMode}
-                        lowStockThreshold={lowStockThreshold}
-                    />
-
-                    {/* Pagination info + dots */}
-                    {pagination.totalPages > 1 && (
-                        <ShopPagination
-                            pagination={pagination}
-                            onPageChange={handlePageChange}
-                        />
-                    )}
-
-                    {/* Page count */}
-                    {pagination.totalPages > 1 && (
-                        <div className="mt-2 text-center text-[12px] text-neutral-400">
-                            صفحة {pagination.page.toLocaleString('ar-EG')} من {pagination.totalPages.toLocaleString('ar-EG')} • {pagination.total.toLocaleString('ar-EG')} منتج
-                        </div>
-                    )}
-                </div>
-            </div>
-            <Footer />
-        </section>
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <ShopClient />
+        </>
     );
 }

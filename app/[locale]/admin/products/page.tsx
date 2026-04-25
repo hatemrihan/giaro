@@ -51,7 +51,7 @@ export default function ProductsPage() {
     const fetchProducts = useCallback(async () => {
         try {
             setError(null);
-            const res = await fetch('/api/admin/products');
+            const res = await fetch('/api/admin/products?sort=custom');
             const data = await res.json();
             if (data.success) {
                 setProducts(data.products ?? []);
@@ -225,8 +225,8 @@ export default function ProductsPage() {
                                         <span className="text-[13px] font-semibold text-white tabular-nums">
                                             {(product.price ?? 0).toLocaleString()} EGP
                                         </span>
-                                        <span className={`text-[11px] ${product.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                                        <span className={`text-[11px] ${product.stock > 5 ? 'text-green-400' : product.stock > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                                            {product.stock > 5 ? `${product.stock} in stock` : product.stock > 0 ? `Low stock: ${product.stock} left` : 'Out of stock'}
                                         </span>
                                     </div>
                                     {product.categories?.[0] && (

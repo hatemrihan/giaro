@@ -20,9 +20,19 @@ type Props = {
     submitError: string;
     onSubmit: () => void;
     totalItems: number;
+    disabled?: boolean;
 };
 
 const CURRENCY = 'ج.م';
+
+const arabicPlural = new Intl.PluralRules('ar-EG');
+const getItemLabel = (count: number) => {
+    const rule = arabicPlural.select(count);
+    if (rule === 'one')  return 'منتج';
+    if (rule === 'two')  return 'منتجان';
+    if (rule === 'few')  return 'منتجات';
+    return 'منتجاً';
+};
 
 export function OrderSummary({
     items,
@@ -41,6 +51,7 @@ export function OrderSummary({
     submitError,
     onSubmit,
     totalItems,
+    disabled,
 }: Props) {
     return (
         <div className="border border-neutral-200 p-6">
@@ -78,8 +89,10 @@ export function OrderSummary({
                                 {item.name}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
-                                {item.variant?.attributes && Object.entries(item.variant.attributes).map(([key, val]) => (
-                                    <span key={key} className="text-[11px] text-neutral-400">{key}: {val}</span>
+                                {item.variant?.attributes && Object.entries(item.variant.attributes).map(([key, val], i, arr) => (
+                                    <span key={key} className="text-[11px] text-neutral-400">
+                                        {key}: {val}{i < arr.length - 1 ? ' ·' : ''}
+                                    </span>
                                 ))}
                                 <span className="text-[11px] text-neutral-400">×{item.quantity.toLocaleString('ar-EG')}</span>
                             </div>
@@ -116,13 +129,15 @@ export function OrderSummary({
                             type="text"
                             value={promoCode}
                             onChange={(e) => onPromoChange(e.target.value.toUpperCase())}
+                            onKeyDown={(e) => { if (e.key === 'Enter') onPromoApply(); }}
                             placeholder="كود الخصم"
                             className="flex-1 border-b border-neutral-300 bg-transparent text-sm text-neutral-900 pb-2 outline-none focus:border-neutral-900 transition-colors placeholder:text-neutral-300"
                             dir="ltr"
                         />
                         <button
                             onClick={onPromoApply}
-                            className="text-sm text-neutral-900 underline underline-offset-4 hover:text-neutral-600 transition-colors cursor-pointer shrink-0"
+                            disabled={isSubmitting}
+                            className="text-sm text-neutral-900 underline underline-offset-4 hover:text-neutral-600 transition-colors cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             تطبيق
                         </button>
@@ -135,7 +150,7 @@ export function OrderSummary({
             <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                     <span className="text-neutral-500">
-                        المجموع الفرعي ({totalItems.toLocaleString('ar-EG')} {totalItems === 1 ? 'منتج' : 'منتجات'})
+                        المجموع الفرعي ({totalItems.toLocaleString('ar-EG')} {getItemLabel(totalItems)})
                     </span>
                     <span className="text-neutral-900">{subtotal.toLocaleString('ar-EG')} {CURRENCY}</span>
                 </div>
@@ -185,7 +200,9 @@ export function OrderSummary({
             {/* ── Submit button ────────────────────────── */}
             <button
                 onClick={onSubmit}
-                disabled={isSubmitting}
+                disabled={disabled || isSubmitting}
+                aria-busy={isSubmitting}
+                aria-label={isSubmitting ? 'جاري إنشاء الطلب' : 'إتمام الطلب'}
                 className="w-full bg-neutral-900 text-white py-4 text-sm font-medium tracking-wide hover:bg-neutral-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer rounded-md flex items-center justify-center"
             >
                 {isSubmitting ? (

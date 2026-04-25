@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Nav from '../../sections/nav';
 import Footer from '../../sections/footer';
@@ -72,69 +72,59 @@ export default function CheckoutPage() {
         }
     }, [isLoaded, state.items.length, router, locale, isSuccess]);
 
-    // ── Fetch governorate pricing ─────────────────────────────
+    // ── Fetch governorate pricing & payment settings ─────────
+    const [settingsLoaded, setSettingsLoaded] = useState(false);
+
     useEffect(() => {
-        fetch('/api/governorate-pricing', { cache: 'no-store' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) setGovernoratePricing(data.pricing);
-            })
-            .catch(() => { });
+        Promise.all([
+            fetch('/api/governorate-pricing',      { cache: 'no-store' }).then(r => r.json()),
+            fetch('/api/admin/payment-settings',   { cache: 'no-store' }).then(r => r.json()),
+        ]).then(([pricingData, paymentData]) => {
+            if (pricingData.success) setGovernoratePricing(pricingData.pricing);
+            if (paymentData.success) setPaymentSettings(paymentData.settings);
+        }).catch(() => {}).finally(() => setSettingsLoaded(true));
     }, []);
 
-    // ── Fetch payment settings ────────────────────────────────
-    useEffect(() => {
-        fetch('/api/admin/payment-settings', { cache: 'no-store' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) setPaymentSettings(data.settings);
-            })
-            .catch(() => { });
-    }, []);
-
-    // ── Re-validate stock on checkout mount ───────────────────
+    // ── Re-validate stock on checkout mount & focus ───────────
     const [stockWarning, setStockWarning] = useState('');
 
-    useEffect(() => {
+    const validateStock = useCallback(async () => {
         if (!isLoaded || state.items.length === 0) return;
+        try {
+            for (const item of state.items) {
+                const res = await fetch(`/api/products/stock?id=${item.id}`, { cache: 'no-store' });
+                if (!res.ok) continue;
+                const data = await res.json();
+                if (!data.success) continue;
 
-        const validateStock = async () => {
-            try {
-                for (const item of state.items) {
-                    const res = await fetch(`/api/products/stock?id=${item.id}`, { cache: 'no-store' });
-                    if (!res.ok) continue;
-                    const data = await res.json();
-                    if (!data.success) continue;
-
-                    // Check variant stock or product stock
-                    let available = data.stock;
-                    if (item.variant?.attributes && data.variants) {
-                        const attrs = item.variant.attributes;
-                        const variant = data.variants.find((v: { attributes: Record<string, string>; stock: number }) => {
-                            const keys = Object.keys(attrs);
-                            return keys.length === Object.keys(v.attributes || {}).length &&
-                                keys.every(k => v.attributes[k] === attrs[k]);
-                        });
-                        if (variant) available = variant.stock;
-                    }
-
-                    if (item.quantity > available) {
-                        if (available <= 0) {
-                            setStockWarning(`"${item.name}" نفذ من المخزون. يرجى إزالته من السلة.`);
-                        } else {
-                            setStockWarning(`"${item.name}" — متبقي ${available} فقط. يرجى تعديل الكمية.`);
-                        }
-                        return;
-                    }
+                let available = data.stock;
+                if (item.variant?.attributes && data.variants) {
+                    const attrs = item.variant.attributes;
+                    const variant = data.variants.find((v: { attributes: Record<string, string>; stock: number }) => {
+                        const keys = Object.keys(attrs);
+                        return keys.length === Object.keys(v.attributes || {}).length &&
+                            keys.every(k => v.attributes[k] === attrs[k]);
+                    });
+                    if (variant) available = variant.stock;
                 }
-                setStockWarning('');
-            } catch {
-                // Silent fail — the server-side check is the real guard
-            }
-        };
 
-        validateStock();
+                if (item.quantity > available) {
+                    setStockWarning(available <= 0
+                        ? `"${item.name}" نفذ من المخزون. يرجى إزالته من السلة.`
+                        : `"${item.name}" — متبقي ${available} فقط. يرجى تعديل الكمية.`
+                    );
+                    return;
+                }
+            }
+            setStockWarning('');
+        } catch { }
     }, [isLoaded, state.items]);
+
+    useEffect(() => {
+        validateStock();
+        window.addEventListener('focus', validateStock);
+        return () => window.removeEventListener('focus', validateStock);
+    }, [validateStock]);
 
     // ── Location detection handler ────────────────────────────
     const handleLocationDetected = (governorate: string, city: string, lat?: number, lng?: number) => {
@@ -185,6 +175,7 @@ export default function CheckoutPage() {
 
     // ── Form validation ───────────────────────────────────────
     const validateForm = (): boolean => {
+        setFormErrors({});
         const errors: Record<string, string> = {};
 
         if (!customer.firstName.trim()) errors.firstName = 'الاسم الأول مطلوب';
@@ -210,7 +201,11 @@ export default function CheckoutPage() {
 
     // ── Submit order ──────────────────────────────────────────
     const handleSubmit = async () => {
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            setSubmitError('يرجى مراجعة وإكمال البيانات المطلوبة في النموذج أعلاه');
+            setTimeout(() => setSubmitError(''), 4000);
+            return;
+        }
         setIsSubmitting(true);
         setSubmitError('');
 
@@ -249,10 +244,12 @@ export default function CheckoutPage() {
                 clearCart();
                 router.push(`/${locale}/checkout/confirmation?orderId=${data.order.orderId}`);
             } else {
-                setSubmitError(data.error || ' فشل في إنشاء الطلب');
+                setSubmitError(data.error || 'فشل في إنشاء الطلب، يرجى المحاولة مرة أخرى');
+                setTimeout(() => setSubmitError(''), 4000);
             }
         } catch {
-            setSubmitError('حدث خطأ. يرجى المحاولة مرة أخرى.');
+            setSubmitError('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.');
+            setTimeout(() => setSubmitError(''), 4000);
         } finally {
             setIsSubmitting(false);
         }
@@ -260,6 +257,18 @@ export default function CheckoutPage() {
 
     if (!isSuccess && state.items.length === 0) {
         return null;
+    }
+
+    if (!settingsLoaded) {
+        return (
+            <div className="min-h-screen bg-white">
+                <Nav />
+                <div className="flex items-center justify-center h-[60vh]">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-neutral-300" />
+                </div>
+                <Footer />
+            </div>
+        );
     }
 
     // ── Render ────────────────────────────────────────────────
@@ -332,9 +341,10 @@ export default function CheckoutPage() {
                                     setPromoApplied(false);
                                     setPromoError('');
                                 }}
-                                isSubmitting={isSubmitting || !!stockWarning}
+                                isSubmitting={isSubmitting}
                                 submitError={submitError || stockWarning}
                                 onSubmit={handleSubmit}
+                                disabled={isSubmitting || !!stockWarning}
                                 totalItems={totalItems}
                             />
                         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams, usePathname } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import {
     AlertDialog,
@@ -22,7 +22,6 @@ import { MobileNav } from '@/app/[locale]/admin/sections/MobileNav';
 const DeleteProductPage = () => {
     const router = useRouter();
     const params = useParams();
-    const currentPath = usePathname();
     const productId = params.id as string;
 
     const [loading, setLoading] = useState<boolean>(true);

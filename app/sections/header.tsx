@@ -16,6 +16,7 @@ export default function Header() {
                     width={1920}
                     height={1080}
                     alt="Hero Image"
+                    priority
                     className="absolute inset-0 w-full h-full object-contain md:object-cover"
                 />
                 {/* <video

@@ -35,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
     { title: "Products", href: "/admin/products", icon: Package },
     { title: "Categories", href: "/admin/categories", icon: Tag },
     { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
-    { title: "Offers", href: "/admin/offers", icon: Percent },
+    { title: "Bundles", href: "/admin/offers", icon: Percent },
     { title: "Contacts", href: "/admin/contacts", icon: Mail },
     { title: "Returns", href: "/admin/return", icon: RotateCcw },
     { title: "Subscribers", href: "/admin/newsletter", icon: Users },
@@ -115,73 +115,73 @@ function AdminSidebar() {
             <div className="flex flex-col flex-1 overflow-y-auto">
                 {/* ── Main Nav ────────────────────────────────────── */}
                 <nav className="px-2 py-2">
-                <div className="space-y-px">
-                    {NAV_ITEMS.map((item) => {
-                        const active = isActive(item.href);
-                        return (
-                            <Link
-                                key={item.title}
-                                href={localizedHref(item.href)}
-                                className={`
+                    <div className="space-y-px">
+                        {NAV_ITEMS.map((item) => {
+                            const active = isActive(item.href);
+                            return (
+                                <Link
+                                    key={item.title}
+                                    href={localizedHref(item.href)}
+                                    className={`
                                     flex items-center gap-2 px-2.5 py-[6px] rounded-md text-[12px]
                                     transition-all duration-75
                                     ${active
-                                        ? "bg-white/[0.08] text-white font-medium"
-                                        : "text-white/80 hover:text-white hover:bg-white/[0.04]"
-                                    }
+                                            ? "bg-white/[0.08] text-white font-medium"
+                                            : "text-white/80 hover:text-white hover:bg-white/[0.04]"
+                                        }
                                 `}
-                            >
-                                <item.icon className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-white' : 'text-white/60'}`} strokeWidth={active ? 2 : 1.5} />
-                                <span className="flex-1 truncate">{item.title}</span>
-                                {active && <ChevronRight className="h-2.5 w-2.5 text-white/60" />}
-                            </Link>
-                        );
-                    })}
-                </div>
+                                >
+                                    <item.icon className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-white' : 'text-white/60'}`} strokeWidth={active ? 2 : 1.5} />
+                                    <span className="flex-1 truncate">{item.title}</span>
+                                    {active && <ChevronRight className="h-2.5 w-2.5 text-white/60" />}
+                                </Link>
+                            );
+                        })}
+                    </div>
 
-                {/* ── Settings (collapsible) ──────────────────── */}
-                <div className="mt-px">
-                    <button
-                        onClick={() => setSettingsOpen(!settingsOpen)}
-                        className={`
+                    {/* ── Settings (collapsible) ──────────────────── */}
+                    <div className="mt-px">
+                        <button
+                            onClick={() => setSettingsOpen(!settingsOpen)}
+                            className={`
                             w-full flex items-center gap-2 px-2.5 py-[6px] rounded-md text-[12px]
                             transition-all duration-75 cursor-pointer
                             ${settingsOpen
-                                ? "text-white"
-                                : "text-white/80 hover:text-white hover:bg-white/[0.04]"
-                            }
+                                    ? "text-white"
+                                    : "text-white/80 hover:text-white hover:bg-white/[0.04]"
+                                }
                         `}
-                    >
-                        <Settings className={`h-3.5 w-3.5 shrink-0 ${settingsOpen ? 'text-white' : 'text-white/60'}`} strokeWidth={1.5} />
-                        <span className="flex-1 text-left truncate">Settings</span>
-                        <ChevronDown
-                            className={`h-2.5 w-2.5 text-white/60 transition-transform duration-150 ${settingsOpen ? 'rotate-0' : '-rotate-90'}`}
-                        />
-                    </button>
+                        >
+                            <Settings className={`h-3.5 w-3.5 shrink-0 ${settingsOpen ? 'text-white' : 'text-white/60'}`} strokeWidth={1.5} />
+                            <span className="flex-1 text-left truncate">Settings</span>
+                            <ChevronDown
+                                className={`h-2.5 w-2.5 text-white/60 transition-transform duration-150 ${settingsOpen ? 'rotate-0' : '-rotate-90'}`}
+                            />
+                        </button>
 
-                    {settingsOpen && (
-                        <div className="ml-[18px] pl-2.5 border-l border-white/[0.06] mt-px space-y-px">
-                            {SETTINGS_CHILDREN.map((child) => {
-                                const active = cleanPath === child.href;
-                                return (
-                                    <Link
-                                        key={child.href}
-                                        href={localizedHref(child.href)}
-                                        className={`
+                        {settingsOpen && (
+                            <div className="ml-[18px] pl-2.5 border-l border-white/[0.06] mt-px space-y-px">
+                                {SETTINGS_CHILDREN.map((child) => {
+                                    const active = cleanPath === child.href;
+                                    return (
+                                        <Link
+                                            key={child.href}
+                                            href={localizedHref(child.href)}
+                                            className={`
                                             block px-2.5 py-[5px] rounded-md text-[11px] transition-all duration-75
                                             ${active
-                                                ? "text-white font-medium"
-                                                : "text-white/70 hover:text-white"
-                                            }
+                                                    ? "text-white font-medium"
+                                                    : "text-white/70 hover:text-white"
+                                                }
                                         `}
-                                    >
-                                        {child.title}
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+                                        >
+                                            {child.title}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </nav>
 
                 {/* ── Footer ─────────────────────────────────────── */}

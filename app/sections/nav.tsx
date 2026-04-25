@@ -24,6 +24,7 @@ export default function Nav() {
 
   const NAV_LINKS = [
     { label: tNav('home'), href: '/' },
+    { label: tNav('categories'), href: '/#categories' },
     { label: tNav('products'), href: '/shop' },
     { label: tNav('about'), href: '/about' },
     { label: tNav('contact'), href: '/contact' },

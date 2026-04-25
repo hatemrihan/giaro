@@ -10,13 +10,14 @@ type Props = {
     locale: string;
     currencySymbol?: string;
     lowStockThreshold?: number;
+    priority?: boolean;
 };
 
 /**
  * Product card — minimal, clean, with variant color swatches.
  * Aspect ratio 3:4 like the JAYASH reference.
  */
-export function ProductCard({ product, locale, currencySymbol = 'ج.م', lowStockThreshold = 5 }: Props) {
+export function ProductCard({ product, locale, currencySymbol = 'ج.م', lowStockThreshold = 5, priority = false }: Props) {
     const hasDiscount = product.original_price && product.original_price > product.price;
 
     // Determine stock status from variants or product-level stock
@@ -84,7 +85,7 @@ export function ProductCard({ product, locale, currencySymbol = 'ج.م', lowStoc
                         unoptimized={product.main_image.startsWith('blob:')}
                         className="object-contain group-hover:scale-105 transition-transform duration-500"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        loading="lazy"
+                        priority={priority}
                         quality={85}
                     />
                 ) : (
@@ -113,35 +114,11 @@ export function ProductCard({ product, locale, currencySymbol = 'ج.م', lowStoc
                             <p className="text-xs text-neutral-400 line-through">
                                 {product.original_price?.toLocaleString('ar-EG')} {currencySymbol}
                             </p>
-                            {product.discount && (
-                                <Badge variant="destructive" className="text-[10px] px-1 py-0">
-                                    -{product.discount}%
-                                </Badge>
-                            )}
                         </>
                     )}
                 </div>
 
-                {/* Color variant swatches */}
-                {product.variants && product.variants.length > 0 && (
-                    <div className="flex gap-1.5 pt-1">
-                        {product.variants.slice(0, 6).map((variant, index) => (
-                            <span
-                                key={index}
-                                className="w-4 h-4 rounded-sm border border-neutral-200 hover:border-neutral-400 transition-colors inline-block"
-                                style={{
-                                    backgroundColor: variant.colorHex || '#ccc',
-                                }}
-                                title={variant.name}
-                            />
-                        ))}
-                        {product.variants.length > 6 && (
-                            <span className="text-[11px] text-neutral-400 self-center mr-0.5">
-                                +{product.variants.length - 6}
-                            </span>
-                        )}
-                    </div>
-                )}
+
 
                 {/* Low stock warning */}
                 {totalStock > 0 && totalStock <= lowStockThreshold && !status && (

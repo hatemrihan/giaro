@@ -18,14 +18,13 @@ type Props = {
     sort: SortOption;
     viewMode: ViewMode;
     total: number;
-    availableColors: string[];
     availableSizes: string[];
     onFiltersChange: (f: Partial<ShopFilters>) => void;
     onSortChange: (s: SortOption) => void;
     onViewModeChange: (v: ViewMode) => void;
 };
 
-type FilterView = 'main' | 'colors' | 'sizes' | 'availability' | 'sort';
+type FilterView = 'main' | 'sizes' | 'availability' | 'sort';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
     { value: 'newest', label: 'الأحدث' },
@@ -44,7 +43,6 @@ export function ShopControls({
     sort,
     viewMode,
     total,
-    availableColors,
     availableSizes,
     onFiltersChange,
     onSortChange,
@@ -91,21 +89,19 @@ export function ShopControls({
                 <div className="hidden lg:flex items-center gap-2">
                     <span className="text-neutral-500">عرض:</span>
                     <button
-                        className={`transition-all cursor-pointer ${
-                            viewMode === 'grid'
+                        className={`transition-all cursor-pointer ${viewMode === 'grid'
                                 ? 'text-neutral-900 underline underline-offset-4 hover:no-underline'
                                 : 'text-neutral-400 hover:text-neutral-900'
-                        }`}
+                            }`}
                         onClick={() => onViewModeChange('grid')}
                     >
                         شبكة
                     </button>
                     <button
-                        className={`transition-all cursor-pointer ${
-                            viewMode === 'large'
+                        className={`transition-all cursor-pointer ${viewMode === 'large'
                                 ? 'text-neutral-900 underline underline-offset-4 hover:no-underline'
                                 : 'text-neutral-400 hover:text-neutral-900'
-                        }`}
+                            }`}
                         onClick={() => onViewModeChange('large')}
                     >
                         كبير
@@ -187,20 +183,6 @@ export function ShopControls({
                                             <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">فلاتر إضافية</span>
                                         </div>
 
-                                        {availableColors.length > 0 && (
-                                            <button
-                                                onClick={() => setFilterView('colors')}
-                                                className="w-full text-right px-2.5 py-2 text-[13px] hover:bg-neutral-50 rounded-lg flex items-center justify-between transition-colors"
-                                            >
-                                                <span className="flex items-center gap-2">
-                                                    الألوان
-                                                    {filters.color && (
-                                                        <span className="text-[10px] bg-neutral-100 text-neutral-600 px-1.5 py-0.5 rounded-md">{filters.color}</span>
-                                                    )}
-                                                </span>
-                                                <ChevronLeft className="w-3.5 h-3.5 text-neutral-400" />
-                                            </button>
-                                        )}
 
                                         {availableSizes.length > 0 && (
                                             <button
@@ -247,31 +229,6 @@ export function ShopControls({
                                 </div>
                             )}
 
-                            {/* ─── Colors sub-view ──────────────── */}
-                            {filterView === 'colors' && (
-                                <SubFilterView
-                                    title="الألوان"
-                                    onBack={() => setFilterView('main')}
-                                >
-                                    <DropdownMenuItem
-                                        onClick={() => onFiltersChange({ color: null })}
-                                        className="cursor-pointer text-[13px] rounded-lg"
-                                    >
-                                        <span className="flex-1">الكل</span>
-                                        {!filters.color && <span>✓</span>}
-                                    </DropdownMenuItem>
-                                    {availableColors.map((color) => (
-                                        <DropdownMenuItem
-                                            key={color}
-                                            onClick={() => onFiltersChange({ color })}
-                                            className="cursor-pointer text-[13px] rounded-lg"
-                                        >
-                                            <span className="flex-1">{color}</span>
-                                            {filters.color === color && <span>✓</span>}
-                                        </DropdownMenuItem>
-                                    ))}
-                                </SubFilterView>
-                            )}
 
                             {/* ─── Sizes sub-view ───────────────── */}
                             {filterView === 'sizes' && (

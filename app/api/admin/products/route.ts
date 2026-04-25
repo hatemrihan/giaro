@@ -5,12 +5,17 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/route';
 import crypto from 'crypto';
 
-function generateSlug(name: string, suffix = ''): string {
-    const baseSlug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
-    return suffix ? `${baseSlug}-${suffix}` : baseSlug;
+function generateSlug(name: string): string {
+    const hasLatin = /[a-zA-Z0-9]/.test(name);
+    if (hasLatin) {
+        const base = name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
+        return `${base}-${crypto.randomUUID().slice(0, 8)}`;
+    }
+    // Arabic or non-latin name — use UUID only for clean URL
+    return crypto.randomUUID().slice(0, 8);
 }
 
 // GET - Fetch products for admin dashboard
@@ -24,8 +29,9 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1', 10);
         const limit = parseInt(searchParams.get('limit') || '20', 10);
+        const sort = searchParams.get('sort') === 'custom' ? 'custom' : 'newest';
 
-        const { products, total } = await getAllProductsAdmin({ page, limit });
+        const { products, total } = await getAllProductsAdmin({ page, limit, sort });
 
         const result = {
             success: true,
@@ -94,7 +100,7 @@ export async function POST(request: NextRequest) {
 
         // Create new product
         const savedProduct = await createProduct({
-            name: name.trim(),
+            name: name.trim().replace(/[<>]/g, ''),
             slug,
             price: price || 0,
             original_price: original_price || null,
@@ -112,8 +118,8 @@ export async function POST(request: NextRequest) {
             order: order || 0,
             detailed_description: detailed_description?.trim() || '',
             shipping_info: shipping_info?.trim() || '',
-            sizes: '',
-            size_guide: '',
+            sizes: typeof body.sizes === 'string' ? body.sizes : '',
+            size_guide: typeof body.size_guide === 'string' ? body.size_guide : '',
             faqs: Array.isArray(faqs) ? faqs.filter((faq: { question?: string; answer?: string }) => faq.question?.trim() && faq.answer?.trim()) : [],
             categories: Array.isArray(categories) ? categories : [],
             show_out_of_stock_badge: !!show_out_of_stock_badge,
@@ -122,9 +128,12 @@ export async function POST(request: NextRequest) {
         });
 
         // Revalidate all pages to show fresh data
-        revalidatePath('/shop');
-        revalidatePath('/');
-        revalidatePath('/admin/products');
+        revalidatePath('/ar/shop');
+        revalidatePath('/en/shop');
+        revalidatePath('/ar');
+        revalidatePath('/en');
+        revalidatePath('/ar/admin/products');
+        revalidatePath('/en/admin/products');
 
         return NextResponse.json({
             success: true,

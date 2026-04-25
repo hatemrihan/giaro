@@ -52,6 +52,7 @@ const LIST_SELECT = [
     'id', 'slug', 'name', 'price', 'original_price', 'discount',
     'main_image', 'images', 'videos', 'description', 'promo_code',
     'variants', 'option_groups', 'stock', 'sizes', 'is_active', 'is_featured',
+    'order',
     'show_out_of_stock_badge', 'show_preorder_badge', 'categories',
     'shipping_info', 'faqs', 'detailed_description',
     'created_at',
@@ -63,7 +64,7 @@ const LIST_SELECT = [
 export async function getActiveProducts(options: {
     page?: number;
     limit?: number;
-    sort?: 'newest' | 'price-asc' | 'price-desc';
+    sort?: 'newest' | 'price-asc' | 'price-desc' | 'custom';
     featuredOnly?: boolean;
 } = {}): Promise<{ products: ProductListItem[]; total: number }> {
     const page = options.page ?? 1;
@@ -84,6 +85,7 @@ export async function getActiveProducts(options: {
     const sort = options.sort || 'newest';
     if (sort === 'price-asc') query = query.order('price', { ascending: true });
     else if (sort === 'price-desc') query = query.order('price', { ascending: false });
+    else if (sort === 'custom') query = query.order('order', { ascending: true });
     else query = query.order('created_at', { ascending: false });
 
     const { data, error, count } = await query;
@@ -98,16 +100,18 @@ export async function getActiveProducts(options: {
 export async function getAllProductsAdmin(options: {
     page?: number;
     limit?: number;
+    sort?: 'newest' | 'custom';
 } = {}): Promise<{ products: Product[]; total: number }> {
     const page = options.page ?? 1;
     const limit = Math.min(options.limit ?? 50, 100);
     const from = (page - 1) * limit;
     const to = from + limit - 1;
+    const sort = options.sort || 'newest';
 
     const { data, error, count } = await supabaseAdmin
         .from('products')
         .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
+        .order(sort === 'custom' ? 'order' : 'created_at', { ascending: sort === 'custom' })
         .range(from, to);
 
     if (error) throw new Error(`Failed to fetch products: ${error.message}`);
@@ -153,7 +157,8 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
     const { data, error } = await supabaseAdmin
         .from('products')
         .select('*')
-        .in('id', ids);
+        .in('id', ids)
+        .eq('is_active', true);
 
     if (error) throw new Error(`Failed to fetch products by ids: ${error.message}`);
     return (data as Product[]) ?? [];
@@ -166,7 +171,7 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
 export async function getProductsByCategory(category: string, options: {
     page?: number;
     limit?: number;
-    sort?: 'newest' | 'price-asc' | 'price-desc';
+    sort?: 'newest' | 'price-asc' | 'price-desc' | 'custom';
     featuredOnly?: boolean;
 } = {}): Promise<{ products: ProductListItem[]; total: number }> {
     const page = options.page ?? 1;
@@ -188,6 +193,7 @@ export async function getProductsByCategory(category: string, options: {
     const sort = options.sort || 'newest';
     if (sort === 'price-asc') query = query.order('price', { ascending: true });
     else if (sort === 'price-desc') query = query.order('price', { ascending: false });
+    else if (sort === 'custom') query = query.order('order', { ascending: true });
     else query = query.order('created_at', { ascending: false });
 
     const { data, error, count } = await query;
@@ -204,13 +210,16 @@ export async function getRelatedProducts(
     categories: string[],
     limit: number
 ): Promise<ProductListItem[]> {
-    if (!categories || categories.length === 0) return [];
+    if (!categories) return [];
+    const validCategories = categories.filter(c => c.trim().length > 0);
+    if (validCategories.length === 0) return [];
+
     const { data, error } = await supabaseAdmin
         .from('products')
         .select(LIST_SELECT)
         .eq('is_active', true)
         .neq('id', excludeId)
-        .overlaps('categories', categories)
+        .overlaps('categories', validCategories)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -285,7 +294,7 @@ export async function deductStock(
         p_product_id: productId,
         p_quantity: quantity,
         p_variant_name: variantName ?? null,
-        p_variant_attrs: variantAttrs ? JSON.stringify(variantAttrs) : null,
+        p_variant_attrs: variantAttrs ?? null,
     });
 
     if (error) {
@@ -310,7 +319,7 @@ export async function restoreStock(
         p_product_id: productId,
         p_quantity: quantity,
         p_variant_name: variantName ?? null,
-        p_variant_attrs: variantAttrs ? JSON.stringify(variantAttrs) : null,
+        p_variant_attrs: variantAttrs ?? null,
     });
 
     if (error) {
@@ -356,7 +365,8 @@ export async function toggleAllProductsVisibility(visible: boolean): Promise<num
 export async function searchProducts(query: string, limit = 10): Promise<ProductListItem[]> {
     if (!query || query.trim().length === 0) return [];
 
-    const term = `%${query.trim()}%`;
+    const safe = query.trim().replace(/[,.'"`\\]/g, '');
+    const term = `%${safe}%`;
 
     const { data, error } = await supabaseAdmin
         .from('products')
