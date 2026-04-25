@@ -86,8 +86,12 @@ export default async function ProductPage({ params }: Props) {
     ]);
 
     // ── JSON-LD: Product ─────────────────────────────────────
-    // NOTE: aggregateRating intentionally omitted until real reviews exist.
-    // Google penalizes fake review data — add this block only with real data.
+    // NOTE: aggregateRating & review are omitted until real reviews exist.
+    // Google penalizes fake/inconsistent review data (empty reviews + high rating).
+    // When you implement a review system, add them back with real data.
+    const priceValidUntil = new Date();
+    priceValidUntil.setFullYear(priceValidUntil.getFullYear() + 1);
+
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Product',
@@ -99,27 +103,20 @@ export default async function ProductPage({ params }: Props) {
             '@type': 'Brand',
             name: 'Giaro',
         },
-        inProductGroupWithID: slug,
-        weight: {
-            '@type': 'QuantitativeValue',
-            value: '1',
-            unitCode: 'KGM',
-        },
-        aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: '4.8',
-            reviewCount: '127',
-        },
-        review: [],
         offers: {
             '@type': 'Offer',
             url: `${BASE_URL}/${locale}/shop/${slug}`,
             priceCurrency: 'EGP',
             price: product.price,
+            priceValidUntil: priceValidUntil.toISOString().split('T')[0],
             availability: product.stock > 0
                 ? 'https://schema.org/InStock'
                 : 'https://schema.org/OutOfStock',
             itemCondition: 'https://schema.org/NewCondition',
+            seller: {
+                '@type': 'Organization',
+                name: 'Giaro',
+            },
         },
     };
 

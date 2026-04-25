@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendOrderConfirmationEmail } from '@/lib/email/email';
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email/email';
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,21 +13,39 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (type === 'customer') {
-            const result = await sendOrderConfirmationEmail({
-                customerEmail: orderData.customerEmail,
-                customerName: orderData.customerName,
-                orderId: orderData.orderId,
-                orderItems: orderData.orderItems,
-                totalAmount: orderData.totalAmount,
-                shippingCost: orderData.shippingCost,
-                paymentMethod: orderData.paymentMethod,
-                shippingAddress: orderData.shippingAddress,
-                customerPhone: orderData.customerPhone,
-            });
+        // Normalize the payload to match our updated interface
+        const emailPayload = {
+            customerEmail: orderData.customerEmail || undefined,
+            customerName: orderData.customerName,
+            orderId: orderData.orderId,
+            orderItems: orderData.orderItems || [],
+            subtotal: orderData.subtotal || 0,
+            shippingCost: orderData.shippingCost || 0,
+            codFee: orderData.codFee || 0,
+            discountAmount: orderData.discountAmount || 0,
+            promoCode: orderData.promoCode || undefined,
+            totalAmount: orderData.totalAmount,
+            paymentMethod: orderData.paymentMethod,
+            shippingAddress: orderData.shippingAddress || { governorate: '', city: '', address: '' },
+            customerPhone: orderData.customerPhone,
+        };
 
+        if (type === 'customer') {
+            const result = await sendOrderConfirmationEmail(emailPayload);
             if (result.success) {
-                return NextResponse.json({ success: true, message: result.message });
+                return NextResponse.json({ success: true });
+            } else {
+                return NextResponse.json(
+                    { success: false, error: result.error },
+                    { status: 500 }
+                );
+            }
+        }
+
+        if (type === 'admin') {
+            const result = await sendAdminOrderNotification(emailPayload);
+            if (result.success) {
+                return NextResponse.json({ success: true });
             } else {
                 return NextResponse.json(
                     { success: false, error: result.error },

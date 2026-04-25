@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { restoreStock } from '@/models/product';
 import { createOrder, getOrders, updateOrderStatus } from '@/models/order';
-import { sendOrderConfirmationEmail } from '@/lib/email/email';
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '@/lib/email/email';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/route';
 
@@ -251,27 +251,42 @@ export async function POST(req: NextRequest) {
             throw orderError;
         }
 
-        // ── Send confirmation email (fire-and-forget — never blocks the order) ──
-        if (body.customer.email) {
-            sendOrderConfirmationEmail({
-                customerEmail: body.customer.email,
-                customerName: `${body.customer.firstName} ${body.customer.lastName}`.trim(),
-                orderId: order.order_number,
-                orderItems: body.items.map((i: { name: string; quantity: number; price: number }) => ({
-                    name: i.name,
-                    quantity: i.quantity,
-                    price: i.price,
-                })),
-                totalAmount: total,
-                shippingCost,
-                paymentMethod: body.paymentMethod === 'cashOnDelivery' ? 'Cash on Delivery' : 'InstaPay',
-                shippingAddress: {
-                    country: body.customer.governorate || 'Egypt',
-                    address: body.customer.address || '',
-                },
-                customerPhone: body.customer.phone,
-            }).catch(err => console.error('[Order Email]', err));
-        }
+        // ── Send emails (fire-and-forget — never blocks the order response) ──
+        const emailPayload = {
+            customerEmail: body.customer.email || undefined,
+            customerName: `${body.customer.firstName} ${body.customer.lastName}`.trim(),
+            orderId: order.order_number,
+            orderItems: verifiedItems.map(i => ({
+                name: i.name,
+                quantity: i.quantity,
+                price: i.price,
+                size: i.size,
+                color: i.color,
+                attributes: i.attributes,
+            })),
+            subtotal,
+            shippingCost,
+            codFee,
+            discountAmount,
+            promoCode,
+            totalAmount: total,
+            paymentMethod: body.paymentMethod === 'cashOnDelivery' ? 'Cash on Delivery' : 'InstaPay',
+            shippingAddress: {
+                governorate: body.customer.governorate || '',
+                city: body.customer.city || '',
+                address: body.customer.address || '',
+                apartment: body.customer.moreInfo || undefined,
+            },
+            customerPhone: body.customer.phone,
+        };
+
+        // 1) ALWAYS notify admins — even if customer has no email
+        sendAdminOrderNotification(emailPayload)
+            .catch(err => console.error('[Admin Email]', err));
+
+        // 2) Send customer confirmation only if they provided an email
+        sendOrderConfirmationEmail(emailPayload)
+            .catch(err => console.error('[Customer Email]', err));
 
         return NextResponse.json({
             success: true,

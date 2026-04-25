@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Resend } from 'resend';
 import { getAdminEmails } from '@/lib/auth/route';
-import { OrderEmailTemplate } from '@/components/email-template';
+import { OrderEmailTemplate, AdminOrderEmailTemplate } from '@/components/email-template';
 
 // ─── Resend Client (lazy — avoids build-time crash when env is absent) ────
 
@@ -33,14 +33,30 @@ interface SendResult {
 }
 
 interface OrderEmailData {
-  customerEmail: string;
+  customerEmail?: string;
   customerName: string;
   orderId: string;
-  orderItems: { name: string; quantity: number; price: number }[];
-  totalAmount: number;
+  orderItems: {
+    name: string;
+    quantity: number;
+    price: number;
+    size?: string;
+    color?: string;
+    attributes?: Record<string, string>;
+  }[];
+  subtotal: number;
   shippingCost: number;
+  codFee: number;
+  discountAmount: number;
+  promoCode?: string;
+  totalAmount: number;
   paymentMethod: string;
-  shippingAddress: { country: string; address: string; apartment?: string };
+  shippingAddress: {
+    governorate: string;
+    city: string;
+    address: string;
+    apartment?: string;
+  };
   customerPhone: string;
 }
 
@@ -86,30 +102,75 @@ export async function sendNewsletterEmail(input: SendNewsletterInput): Promise<S
   };
 }
 
-// ─── Order Confirmation Email ─────────────────────────────────
+// ─── Order Confirmation Email (to customer — only if email exists) ────
 
-export async function sendOrderConfirmationEmail(data: OrderEmailData): Promise<{ success: boolean; message?: string; error?: string }> {
+export async function sendOrderConfirmationEmail(data: OrderEmailData): Promise<{ success: boolean; error?: string }> {
+  if (!data.customerEmail) {
+    return { success: true }; // No customer email — skip silently
+  }
+
   try {
     await getResend().emails.send({
       from: FROM_EMAIL,
       to: [data.customerEmail],
-      bcc: getAdminEmails(), // Admins get a copy of every new order
       subject: `Order Confirmed — ${data.orderId}`,
       react: React.createElement(OrderEmailTemplate, {
         customerName: data.customerName,
         orderId: data.orderId,
         orderItems: data.orderItems,
-        totalAmount: data.totalAmount,
+        subtotal: data.subtotal,
         shippingCost: data.shippingCost,
+        codFee: data.codFee,
+        discountAmount: data.discountAmount,
+        promoCode: data.promoCode,
+        totalAmount: data.totalAmount,
         paymentMethod: data.paymentMethod,
         shippingAddress: data.shippingAddress,
         customerPhone: data.customerPhone,
       }),
     });
-    return { success: true, message: 'Order confirmation email sent' };
+    return { success: true };
   } catch (err) {
-    console.error('❌ Order confirmation email failed:', err);
+    console.error('❌ Customer email failed:', err);
     return { success: false, error: err instanceof Error ? err.message : 'Failed to send email' };
+  }
+}
+
+// ─── Admin Order Notification (ALWAYS fires — regardless of customer email) ──
+
+export async function sendAdminOrderNotification(data: OrderEmailData): Promise<{ success: boolean; error?: string }> {
+  const adminEmails = getAdminEmails();
+
+  if (adminEmails.length === 0) {
+    console.warn('⚠️ No admin emails configured — skipping admin notification');
+    return { success: false, error: 'No admin emails' };
+  }
+
+  try {
+    await getResend().emails.send({
+      from: FROM_EMAIL,
+      to: adminEmails,
+      subject: `🛒 New Order #${data.orderId} — ${data.customerName} — L.E ${data.totalAmount.toLocaleString()}`,
+      react: React.createElement(AdminOrderEmailTemplate, {
+        customerName: data.customerName,
+        customerEmail: data.customerEmail,
+        orderId: data.orderId,
+        orderItems: data.orderItems,
+        subtotal: data.subtotal,
+        shippingCost: data.shippingCost,
+        codFee: data.codFee,
+        discountAmount: data.discountAmount,
+        promoCode: data.promoCode,
+        totalAmount: data.totalAmount,
+        paymentMethod: data.paymentMethod,
+        shippingAddress: data.shippingAddress,
+        customerPhone: data.customerPhone,
+      }),
+    });
+    return { success: true };
+  } catch (err) {
+    console.error('❌ Admin notification email failed:', err);
+    return { success: false, error: err instanceof Error ? err.message : 'Failed to send admin email' };
   }
 }
 
@@ -142,4 +203,3 @@ function buildNewsletterHtml(heading: string, message: string): string {
 </body>
 </html>`;
 }
-
