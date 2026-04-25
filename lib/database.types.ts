@@ -70,7 +70,7 @@ export type OrderItem = {
     size?: string;                          // legacy — kept for old orders
     color?: string;                         // legacy — kept for old orders
     attributes?: Record<string, string>;    // new — used for new orders
-    image: string;
+    image?: string;                         // optional — manual orders may not have images
 }
 
 // ─── Table row types ──────────────────────────────────────────────────────────
@@ -103,6 +103,8 @@ export type OfferRow = {
     show_on_home: boolean;
     show_pages: string[];
     display_order: number;
+    product_ids: string[];
+    discount_label: string;
     created_at: string;
     updated_at: string;
 }

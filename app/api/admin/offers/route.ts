@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
             show_on_home: body.show_on_home ?? false,
             show_pages: body.show_pages ?? ['offers'],
             display_order: body.display_order ?? 0,
+            product_ids: body.product_ids ?? [],
+            discount_label: body.discount_label ?? '',
         });
         revalidatePath('/');
         revalidatePath('/shop');

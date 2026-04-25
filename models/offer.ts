@@ -7,7 +7,7 @@ export type Offer = OfferRow;
 export type CreateOfferInput = Omit<OfferRow, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateOfferInput = Partial<Omit<OfferRow, 'id' | 'created_at' | 'updated_at'>>;
 
-const PUBLIC_SELECT = 'id, title, description, image, link, show_pages, display_order';
+const PUBLIC_SELECT = 'id, title, description, image, link, show_pages, display_order, product_ids, discount_label';
 
 // ─── Public queries ───────────────────────────────────────────
 

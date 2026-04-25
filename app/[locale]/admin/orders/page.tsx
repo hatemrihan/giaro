@@ -304,6 +304,26 @@ export default function OrdersPage() {
         }
     };
 
+    // ── Delete ───────────────────────────────────────────────
+
+    const deleteOrder = async (orderId: string, orderNumber: string) => {
+        if (!confirm(`Delete order #${orderNumber}? This will permanently remove it from the database and restore stock.`)) return;
+        const toastId = toast.loading('Deleting order…');
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: orderId }),
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+            toast.success('Order deleted', { id: toastId, duration: 2000 });
+            setOrders(prev => prev.filter(o => o.id !== orderId));
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Failed to delete', { id: toastId });
+        }
+    };
+
     // ── Export ───────────────────────────────────────────────
 
     const handleExport = async (format: 'excel' | 'csv' | 'pdf' | 'doc') => {
@@ -684,13 +704,22 @@ export default function OrdersPage() {
 
                                             {/* View button */}
                                             <TableCell className="px-5 py-3 whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                                                <Button
-                                                    size="icon" variant="ghost"
-                                                    onClick={() => setViewOrder(order)}
-                                                    className="h-7 w-7 text-stone-500 hover:text-white hover:bg-stone-800"
-                                                >
-                                                    <Eye className="h-3.5 w-3.5" />
-                                                </Button>
+                                                <div className="flex items-center gap-1">
+                                                    <Button
+                                                        size="icon" variant="ghost"
+                                                        onClick={() => setViewOrder(order)}
+                                                        className="h-7 w-7 text-stone-500 hover:text-white hover:bg-stone-800"
+                                                    >
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                    <Button
+                                                        size="icon" variant="ghost"
+                                                        onClick={() => deleteOrder(order.id, order.order_number)}
+                                                        className="h-7 w-7 text-stone-500 hover:text-red-400 hover:bg-red-500/10"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))}

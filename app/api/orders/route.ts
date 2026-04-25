@@ -346,28 +346,29 @@ export async function PATCH(req: NextRequest) {
 
             // Only restore if the order wasn't already cancelled
             if (order && order.status !== 'cancelled') {
-                const items = order.items as {
+                const items = (order.items as {
                     productId: string;
                     quantity: number;
                     color?: string;
                     attributes?: Record<string, string>;
-                }[];
+                }[]).filter(item => item.productId !== 'manual');
 
-                // Restore stock for all items in parallel with logging for failures
-                const results = await Promise.allSettled(
-                    items.map(item => restoreStock(
-                        item.productId,
-                        item.quantity,
-                        item.color,
-                        item.attributes,
-                    ))
-                );
+                if (items.length > 0) {
+                    const results = await Promise.allSettled(
+                        items.map(item => restoreStock(
+                            item.productId,
+                            item.quantity,
+                            item.color,
+                            item.attributes,
+                        ))
+                    );
 
-                results.forEach((r, i) => {
-                    if (r.status === 'rejected') {
-                        console.error(`[PATCH /api/orders] Stock restore failed for item ${i} (${items[i].productId}):`, r.reason);
-                    }
-                });
+                    results.forEach((r, i) => {
+                        if (r.status === 'rejected') {
+                            console.error(`[PATCH /api/orders] Stock restore failed for item ${i} (${items[i].productId}):`, r.reason);
+                        }
+                    });
+                }
             }
         }
 
@@ -376,6 +377,66 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ success: true, order: updatedOrder });
     } catch (error) {
         console.error('[PATCH /api/orders]', error);
+        return NextResponse.json(
+            { success: false, error: (error as Error).message },
+            { status: 500 },
+        );
+    }
+}
+
+// ─── DELETE — Delete an order (Admin) ──────────────────────────
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id } = await req.json();
+        if (!id) {
+            return NextResponse.json({ success: false, error: 'Missing order id' }, { status: 400 });
+        }
+
+        // Fetch order to check status and restore stock if needed
+        const { data: order } = await supabaseAdmin
+            .from('orders')
+            .select('items, status')
+            .eq('id', id)
+            .single();
+
+        if (!order) {
+            return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
+        }
+
+        // Restore stock if order wasn't already cancelled (skip manual items)
+        if (order.status !== 'cancelled') {
+            const items = (order.items as {
+                productId: string;
+                quantity: number;
+                color?: string;
+                attributes?: Record<string, string>;
+            }[]).filter(item => item.productId !== 'manual');
+
+            if (items.length > 0) {
+                const results = await Promise.allSettled(
+                    items.map(item => restoreStock(item.productId, item.quantity, item.color, item.attributes))
+                );
+                results.forEach((r, i) => {
+                    if (r.status === 'rejected') {
+                        console.error(`[DELETE /api/orders] Stock restore failed for item ${i}:`, r.reason);
+                    }
+                });
+            }
+        }
+
+        // Use model function to delete
+        const { deleteOrder } = await import('@/models/order');
+        await deleteOrder(id);
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('[DELETE /api/orders]', error);
         return NextResponse.json(
             { success: false, error: (error as Error).message },
             { status: 500 },
