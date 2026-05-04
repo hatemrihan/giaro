@@ -16,6 +16,7 @@ import {
     Menu,
     X,
     Percent,
+    Activity,
 } from "lucide-react";
 
 import {
@@ -39,6 +40,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
     { title: "Dashboard", href: "/admin/analytics", icon: LayoutDashboard },
+    { title: "Funnel", href: "/admin/funnel", icon: Activity },
     { title: "Products", href: "/admin/products", icon: Package },
     { title: "Categories", href: "/admin/categories", icon: Tag },
     { title: "Visibility", href: "/admin/product-visibility", icon: Eye },

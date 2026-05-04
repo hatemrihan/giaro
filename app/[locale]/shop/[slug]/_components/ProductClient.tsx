@@ -10,6 +10,7 @@ import { ProductDetailsTabs } from '@/app/[locale]/shop/[slug]/_components/Produ
 import type { ProductVariant, ProductOptionGroup } from '@/lib/database.types';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAnalytics } from '@/lib/analytics';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -89,6 +90,7 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
 
     const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const { addItem, state } = useCart();
+    const { trackEvent } = useAnalytics();
     const currencySymbol = 'ج.م';
 
     const currentStock = useMemo(() =>
@@ -114,6 +116,23 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
             setSelectedImageIndex(0);
         }
     }, [product.option_groups]);
+
+    // ── Analytics: ViewContent on product page view ──────────────
+    useEffect(() => {
+        if (!product?.id) return;
+        trackEvent({
+            name: 'ViewContent',
+            params: {
+                content_ids: [product.id],
+                content_name: product.name,
+                content_type: 'product',
+                value: product.price,
+                currency: 'EGP',
+            },
+        });
+    // Fire only once per product page load
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [product?.id]);
 
     // ── Polling — live stock updates ────────────────────────────
     useEffect(() => {
@@ -237,6 +256,18 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
 
             setShowCartNotification(true);
             setTimeout(() => setShowCartNotification(false), 3000);
+
+            // Analytics: AddToCart event
+            trackEvent({
+                name: 'AddToCart',
+                params: {
+                    content_ids: [product.id],
+                    content_name: product.name,
+                    value: matchedVariant?.price ?? product.price,
+                    currency: 'EGP',
+                    num_items: 1,
+                },
+            });
         } catch {
             setCartError('فشل في الإضافة إلى السلة');
             setTimeout(() => setCartError(''), 4000);

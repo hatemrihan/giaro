@@ -19,6 +19,7 @@ import {
     ChevronDown,
     LogOut,
     Store,
+    Activity,
 } from "lucide-react";
 
 // ─── Navigation Config ────────────────────────────────────────
@@ -32,6 +33,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
     { title: "Dashboard", href: "/admin/analytics", icon: LayoutDashboard },
+    { title: "Funnel", href: "/admin/funnel", icon: Activity },
     { title: "Products", href: "/admin/products", icon: Package },
     { title: "Categories", href: "/admin/categories", icon: Tag },
     { title: "Orders", href: "/admin/orders", icon: ShoppingCart },

@@ -8,6 +8,7 @@ import { useCart } from '@/components/contexts/CartContext';
 import { CustomerInfoForm } from './_components/CustomerInfoForm';
 import { PaymentMethodSelector } from './_components/PaymentMethodSelector';
 import { OrderSummary } from './_components/OrderSummary';
+import { useAnalytics } from '@/lib/analytics';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -43,6 +44,7 @@ export default function CheckoutPage() {
     const pathname = usePathname();
     const locale = pathname.match(/^\/(ar|en)/)?.[1] || 'ar';
     const { state, totalPrice, totalItems, clearCart, isLoaded } = useCart();
+    const { trackEvent } = useAnalytics();
 
     // ── State ───────────────────────────────────────────────
     const [customer, setCustomer] = useState<CustomerInfo>({
@@ -84,6 +86,36 @@ export default function CheckoutPage() {
             if (paymentData.success) setPaymentSettings(paymentData.settings);
         }).catch(() => {}).finally(() => setSettingsLoaded(true));
     }, []);
+
+    // ── Analytics: InitiateCheckout on page mount ─────────────
+    useEffect(() => {
+        if (!isLoaded || state.items.length === 0) return;
+        trackEvent({
+            name: 'InitiateCheckout',
+            params: {
+                content_ids: state.items.map(i => i.id),
+                value: totalPrice,
+                currency: 'EGP',
+                num_items: totalItems,
+            },
+        });
+    // Fire only once when checkout loads with items
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoaded]);
+
+    // ── Analytics: AddPaymentInfo on payment method change ────
+    useEffect(() => {
+        if (!isLoaded || state.items.length === 0) return;
+        trackEvent({
+            name: 'AddPaymentInfo',
+            params: {
+                value: totalPrice,
+                currency: 'EGP',
+                payment_method: payment.method,
+            },
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [payment.method]);
 
     // ── Re-validate stock on checkout mount & focus ───────────
     const [stockWarning, setStockWarning] = useState('');
@@ -242,6 +274,19 @@ export default function CheckoutPage() {
             if (data.success) {
                 setIsSuccess(true);
                 clearCart();
+
+                // Analytics: Purchase event
+                trackEvent({
+                    name: 'Purchase',
+                    params: {
+                        value: total,
+                        currency: 'EGP',
+                        transaction_id: data.order.orderId,
+                        content_ids: state.items.map(i => i.id),
+                        num_items: totalItems,
+                    },
+                });
+
                 router.push(`/${locale}/checkout/confirmation?orderId=${data.order.orderId}`);
             } else {
                 setSubmitError(data.error || 'فشل في إنشاء الطلب، يرجى المحاولة مرة أخرى');

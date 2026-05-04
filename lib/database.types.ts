@@ -275,11 +275,31 @@ export type GovernoratePricingRow = {
     updated_at: string;
 }
 
+export type AnalyticsEventRow = {
+    id: string;
+    event_id: string;
+    session_id: string | null;
+    event_name: string;
+    url_path: string | null;
+    referrer: string | null;
+    locale: string;
+    payload: Record<string, unknown>;
+    ip_address: string | null;
+    user_agent: string | null;
+    created_at: string;
+}
+
 // ─── Full Database type (consumed by createClient<Database>) ─────────────────
 
 export type Database = {
     public: {
         Tables: {
+            analytics_events: {
+                Row: AnalyticsEventRow;
+                Insert: Omit<AnalyticsEventRow, 'id' | 'created_at'>;
+                Update: Partial<Omit<AnalyticsEventRow, 'id' | 'created_at'>>;
+                Relationships: [];
+            };
             categories: {
                 Row: CategoryRow;
                 Insert: Omit<CategoryRow, 'id' | 'created_at' | 'updated_at'>;

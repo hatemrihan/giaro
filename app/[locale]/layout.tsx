@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from 'next/font/local';
 import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/components/contexts/CartContext";
+import { AnalyticsProvider } from '@/lib/analytics';
 import IntlClientProvider from '@/lib/IntlProvider';
 import { notFound } from 'next/navigation';
 import "../globals.css";
@@ -129,7 +130,9 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <IntlClientProvider messages={messages} locale={locale}>
           <CartProvider>
-            {children}
+            <AnalyticsProvider>
+              {children}
+            </AnalyticsProvider>
           </CartProvider>
           <Toaster richColors closeButton />
         </IntlClientProvider>
