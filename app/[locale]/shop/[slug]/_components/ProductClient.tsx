@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Nav from '@/app/sections/nav';
 import Footer from '@/app/sections/footer';
 import { useCart } from '@/components/contexts/CartContext';
@@ -58,6 +58,7 @@ type Props = {
 
 export function ProductClient({ initialProduct, relatedProducts, lowStockThreshold }: Props) {
     const pathname = usePathname();
+    const router = useRouter();
     const locale = pathname.match(/^\/(ar|en)/)?.[1] || 'ar';
 
     const [product, setProduct] = useState<ProductFull>(initialProduct);
@@ -276,6 +277,69 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
         }
     };
 
+    // ── Buy Now ──────────────────────────────────────────────────
+    const handleBuyNow = async () => {
+        if (!product || isAddingToCart) return;
+        setCartError('');
+
+        if (hasOptions && !allOptionsSelected) {
+            setCartError('يرجى اختيار جميع الخيارات أولاً');
+            setTimeout(() => setCartError(''), 4000);
+            return;
+        }
+
+        const availableStock = matchedVariant ? matchedVariant.stock : product.stock;
+        if (availableStock <= 0) {
+            setCartError(`عذراً، "${product.name}" غير متوفر حالياً`);
+            setTimeout(() => setCartError(''), 4000);
+            return;
+        }
+
+        const cartAttrs = hasOptions ? selectedAttrs : undefined;
+        const existing = state.items.find(i =>
+            i.id === product.id && isSameAttributes(cartAttrs, i.variant?.attributes)
+        );
+
+        if (existing && existing.quantity >= availableStock) {
+            setCartError(`عذراً، لديك الحد الأقصى المتاح (${availableStock}) من هذا المنتج في السلة`);
+            setTimeout(() => setCartError(''), 4000);
+            return;
+        }
+
+        try {
+            setIsAddingToCart(true);
+
+            addItem({
+                id: product.id,
+                name: product.name,
+                image: product.main_image,
+                price: matchedVariant?.price ?? product.price,
+                maxStock: availableStock,
+                variant: cartAttrs ? { attributes: cartAttrs } : undefined,
+            }, 1);
+
+            // Analytics: AddToCart event
+            trackEvent({
+                name: 'AddToCart',
+                params: {
+                    content_ids: [product.id],
+                    content_name: product.name,
+                    value: matchedVariant?.price ?? product.price,
+                    currency: 'EGP',
+                    num_items: 1,
+                },
+            });
+
+            // Go straight to checkout
+            router.push(`/${locale}/checkout`);
+        } catch {
+            setCartError('فشل في الإضافة إلى السلة');
+            setTimeout(() => setCartError(''), 4000);
+        } finally {
+            setIsAddingToCart(false);
+        }
+    };
+
     // ── Render ───────────────────────────────────────────────────
 
     if (!product) {
@@ -401,6 +465,21 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
                                         : currentStock <= 0
                                             ? 'نفذ المخزون'
                                             : 'أضف إلى السلة'
+                                    }
+                                </button>
+
+                                {/* Buy Now */}
+                                <button
+                                    onClick={handleBuyNow}
+                                    disabled={isAddingToCart || currentStock <= 0}
+                                    className={`w-full py-4 text-sm font-medium tracking-wide transition-colors cursor-pointer border ${currentStock <= 0
+                                        ? 'bg-neutral-100 text-neutral-300 border-neutral-200 cursor-not-allowed'
+                                        : 'bg-black text-white border-black hover:bg-neutral-800'
+                                        }`}
+                                >
+                                    {currentStock <= 0
+                                        ? 'نفذ المخزون'
+                                        : 'اشتري الآن'
                                     }
                                 </button>
 

@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/components/contexts/CartContext";
 import { AnalyticsProvider } from '@/lib/analytics';
+import WhatsAppButton from "@/app/sections/whatsapp";
 import IntlClientProvider from '@/lib/IntlProvider';
 import { notFound } from 'next/navigation';
 import "../globals.css";
@@ -132,6 +133,7 @@ export default async function RootLayout({
           <CartProvider>
             <AnalyticsProvider>
               {children}
+              <WhatsAppButton />
             </AnalyticsProvider>
           </CartProvider>
           <Toaster richColors closeButton />
