@@ -358,6 +358,9 @@ export default function FunnelPage() {
                     )}
                 </>
             )}
+
+            {/* ── Tracking Integrations Status ─────────────────── */}
+            <TrackingStatus />
         </div>
     );
 }
@@ -382,6 +385,120 @@ function KPICard({ icon: Icon, label, value, sub, color, warning }: {
             <div className="text-xl font-semibold text-white tracking-tight leading-none">{value}</div>
             <div className="text-[11px] text-white/35 mt-1.5">{label}</div>
             {sub && <div className="text-[10px] text-white/20 mt-0.5">{sub}</div>}
+        </div>
+    );
+}
+
+// ── Tracking Integrations Status ──────────────────────────────
+
+function TrackingStatus() {
+    const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
+    const ga4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '';
+
+    const integrations = [
+        {
+            name: 'Meta Pixel (Facebook & Instagram)',
+            id: metaPixelId,
+            active: !!metaPixelId,
+            color: '#1877F2',
+            icon: (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+            ),
+            link: metaPixelId ? `https://business.facebook.com/events_manager2/list/pixel/${metaPixelId}/overview` : null,
+            events: ['PageView', 'ViewContent', 'AddToCart', 'InitiateCheckout', 'Purchase'],
+        },
+        {
+            name: 'Google Analytics 4',
+            id: ga4Id,
+            active: !!ga4Id,
+            color: '#E37400',
+            icon: (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.84 2.9982v17.004c-.2.6-.6 1.1-1.2 1.4-.2.1-.4.1-.6.2h-2c-.2 0-.3-.1-.5-.1-.8-.3-1.3-1-1.3-1.9V4.3982c.1-1.1.9-1.9 1.9-2 1.1-.1 2.1.6 2.3 1.7.1.2 0 .5 0 .9zm-9.4 7.006v9c-.2.6-.6 1.1-1.2 1.4-.2.1-.4.1-.6.2h-2c-.2 0-.3-.1-.5-.1-.8-.3-1.3-1-1.3-1.9v-8.2c0-1.1.8-2 1.9-2.1 1.1-.1 2.1.6 2.3 1.7.1-.1.1.1.1.5zm-9.4 7.004c0 1.1-.8 2-1.9 2.1-1.1.1-2.1-.6-2.3-1.7 0-.2 0-.4 0-.6 0-.6.2-1.1.6-1.5.5-.5 1.1-.7 1.8-.6 1 .1 1.8 1 1.8 2v.3z"/>
+                </svg>
+            ),
+            link: ga4Id ? `https://analytics.google.com/analytics/web/#/realtime/overview?params=_u..nav%3Dmaui` : null,
+            events: ['page_view', 'view_item', 'add_to_cart', 'begin_checkout', 'purchase'],
+        },
+        {
+            name: 'Internal Analytics (Supabase)',
+            id: 'analytics_events',
+            active: true,
+            color: '#3ECF8E',
+            icon: (
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 14.9c0 2.1-.4 3.3-1 3.8-.6.5-1.6.3-2.2-.5l-5.2-7.5V21c0 1.3-.5 2-1.3 2-.6 0-1.2-.3-1.6-.8L3.3 12.6c-.6-.7-.8-1.4-.8-1.8 0-.4.2-.6.6-.6h.3c.3 0 .6.2.9.5l5.2 7.5V7c0-1.3.5-2 1.3-2 .6 0 1.2.3 1.6.8l6.5 9.6c.3.4.6.5.8.5.3 0 .3-.5.3-2V3c0-1.7 1.3-3 3-3s3 1.3 3 3v11.9z"/>
+                </svg>
+            ),
+            link: null,
+            events: ['PageView', 'ViewContent', 'AddToCart', 'InitiateCheckout', 'Purchase'],
+        },
+    ];
+
+    return (
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-5">
+            <span className="text-[11px] text-white/40 uppercase tracking-wider font-medium block mb-4">
+                Tracking Integrations
+            </span>
+            <div className="space-y-3">
+                {integrations.map((int) => (
+                    <div
+                        key={int.name}
+                        className="flex items-center justify-between py-2.5 px-3 rounded-md bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            {/* Status dot */}
+                            <div className="relative">
+                                <div
+                                    className={`w-2 h-2 rounded-full ${int.active ? 'animate-pulse' : ''}`}
+                                    style={{ backgroundColor: int.active ? '#4ade80' : '#ef4444' }}
+                                />
+                            </div>
+
+                            {/* Icon */}
+                            <div
+                                className="w-7 h-7 rounded-md flex items-center justify-center"
+                                style={{ backgroundColor: `${int.color}18`, color: int.color }}
+                            >
+                                {int.icon}
+                            </div>
+
+                            {/* Info */}
+                            <div>
+                                <div className="text-[12px] text-white/80 font-medium">{int.name}</div>
+                                <div className="text-[10px] text-white/25 font-mono mt-0.5">
+                                    {int.active ? `ID: ${int.id}` : 'Not configured'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                                int.active
+                                    ? 'bg-emerald-500/10 text-emerald-400'
+                                    : 'bg-red-500/10 text-red-400'
+                            }`}>
+                                {int.active ? 'Active' : 'Inactive'}
+                            </span>
+                            {int.link && (
+                                <a
+                                    href={int.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] text-white/30 hover:text-white/60 transition-colors underline"
+                                >
+                                    Open →
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <p className="text-[10px] text-white/15 mt-3">
+                All events fire simultaneously to each active integration with deduplication via event_id.
+            </p>
         </div>
     );
 }
