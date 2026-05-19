@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProductVisibilityStats, toggleAllProductsVisibility } from '@/models/product';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/route';
+import { invalidateProductCache } from '@/lib/auth/cache/route';
 
 // GET - Get current visibility status of all products
 export async function GET() {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const stats = await getProductVisibilityStats();
 
         return NextResponse.json({
@@ -23,6 +31,11 @@ export async function GET() {
 // POST - Toggle visibility of all products
 export async function POST(request: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.isAdmin) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { visible } = body;
 
@@ -34,6 +47,9 @@ export async function POST(request: NextRequest) {
         }
 
         const updatedCount = await toggleAllProductsVisibility(visible);
+
+        // Invalidate all product caches after bulk visibility change
+        invalidateProductCache();
 
         return NextResponse.json({
             success: true,

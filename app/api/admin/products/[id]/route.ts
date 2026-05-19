@@ -3,6 +3,7 @@ import { getProductById, getProductBySlug, updateProduct, deleteProduct } from '
 import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/route';
+import { invalidateProductCache } from '@/lib/auth/cache/route';
 
 // Helper to determine if the string is a valid UUID
 function isValidUUID(id: string): boolean {
@@ -107,7 +108,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
              return NextResponse.json({ success: false, error: 'Failed to apply product updates' }, { status: 500 });
         }
 
-        // Revalidate affected pages
+        // Invalidate caches and revalidate affected pages
+        invalidateProductCache(product.id);
         revalidatePath('/shop');
         revalidatePath('/');
         revalidatePath(`/product/${updatedProduct.slug}`);
@@ -154,7 +156,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
         const updatedProduct = await updateProduct(product.id, { is_featured: isFeatured });
 
-        // Revalidate affected pages
+        // Invalidate caches and revalidate affected pages
+        invalidateProductCache(product.id);
         revalidatePath('/shop');
         revalidatePath('/');
         revalidatePath(`/product/${product.slug}`);
@@ -193,7 +196,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         await deleteProduct(product.id);
 
-        // Revalidate affected pages
+        // Invalidate caches and revalidate affected pages
+        invalidateProductCache(product.id);
         revalidatePath('/shop');
         revalidatePath('/');
         revalidatePath(`/product/${product.slug}`);

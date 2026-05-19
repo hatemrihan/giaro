@@ -3,6 +3,7 @@ import { getAllProductsAdmin, createProduct } from '@/models/product';
 import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/route';
+import { invalidateProductCache } from '@/lib/auth/cache/route';
 import crypto from 'crypto';
 
 function generateSlug(name: string): string {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1', 10);
-        const limit = parseInt(searchParams.get('limit') || '20', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || '200', 10), 500);
         const sort = searchParams.get('sort') === 'custom' ? 'custom' : 'newest';
 
         const { products, total } = await getAllProductsAdmin({ page, limit, sort });
@@ -46,7 +47,11 @@ export async function GET(request: NextRequest) {
             }
         };
 
-        return NextResponse.json(result);
+        return NextResponse.json(result, {
+            headers: {
+                'Cache-Control': 'no-store, no-cache, must-revalidate',
+            },
+        });
     } catch (error) {
         console.error('[GET /api/admin/products]', error);
         return NextResponse.json(
@@ -127,7 +132,8 @@ export async function POST(request: NextRequest) {
             city_pricing: []
         });
 
-        // Revalidate all pages to show fresh data
+        // Invalidate caches and revalidate all pages to show fresh data
+        invalidateProductCache();
         revalidatePath('/ar/shop');
         revalidatePath('/en/shop');
         revalidatePath('/ar');

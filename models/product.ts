@@ -103,7 +103,7 @@ export async function getAllProductsAdmin(options: {
     sort?: 'newest' | 'custom';
 } = {}): Promise<{ products: Product[]; total: number }> {
     const page = options.page ?? 1;
-    const limit = Math.min(options.limit ?? 50, 100);
+    const limit = Math.min(options.limit ?? 200, 500);
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     const sort = options.sort || 'newest';
