@@ -58,8 +58,7 @@ export default function AboutPage() {
                             muted
                             playsInline
                         >
-                            <source src="/videos/one.mov" type="video/quicktime" />
-                            <source src="/videos/one.mov" type="video/mp4" />
+                            <source src="/videos/one.mp4" type="video/mp4" />
                         </video>
                     </motion.div>
                 </div>
@@ -80,8 +79,7 @@ export default function AboutPage() {
                             muted
                             playsInline
                         >
-                            <source src="/videos/two.mov" type="video/quicktime" />
-                            <source src="/videos/two.mov" type="video/mp4" />
+                            <source src="/videos/two.mp4" type="video/mp4" />
                         </video>
                     </motion.div>
                 </div>

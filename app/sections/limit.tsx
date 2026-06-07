@@ -31,7 +31,7 @@ export default function LimitOffer() {
     const sectionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        fetch('/api/offers?page=homepage', { cache: 'no-store' })
+        fetch('/api/offers?page=homepage')
             .then(res => res.json())
             .then(async (data: Offer[]) => {
                 setOffers(data);

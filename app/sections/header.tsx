@@ -19,7 +19,7 @@ export default function Header() {
                     className="absolute inset-0 w-full h-full object-contain md:object-cover"
                 /> */}
                 <video
-                    src="/videos/three.mov"
+                    src="/videos/three.mp4"
                     autoPlay
                     muted
                     loop

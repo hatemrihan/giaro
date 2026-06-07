@@ -2,22 +2,19 @@ import { getActiveProducts, getProductsByCategory } from '@/models/product';
 import { getAllCategories } from '@/models/category';
 import { NextRequest, NextResponse } from 'next/server';
 import { getStoreSettings } from '@/lib/settings';
+import { cached } from '@/lib/cache';
 
 const VALID_SORTS = ['newest', 'price-asc', 'price-desc'] as const;
 type Sort = typeof VALID_SORTS[number];
+
+const CACHE_TTL = 60 * 1000; // 60 seconds
 
 /**
  * GET /api/products
  *
  * Public product listing endpoint.
  * Supports: pagination, category filtering, sorting.
- *
- * Query params:
- *   ?page=1          — page number (default 1)
- *   ?limit=16        — items per page (default 16, max 100)
- *   ?category=candy  — filter by category name
- *   ?sort=newest     — sort: newest | price-asc | price-desc
- *   ?featured=true   — only featured products
+ * Cached in-memory for 60s to reduce Supabase egress.
  */
 export async function GET(req: NextRequest) {
     try {
@@ -30,32 +27,35 @@ export async function GET(req: NextRequest) {
         const sort = (VALID_SORTS.includes(sortRaw as Sort) ? sortRaw : 'newest') as Sort;
         const featured = searchParams.get('featured') === 'true';
 
-        const [categoriesResp, productsResp] = await Promise.all([
-            getAllCategories(),
-            category
-                ? getProductsByCategory(category, { page, limit, sort, featuredOnly: featured })
-                : getActiveProducts({ page, limit, sort, featuredOnly: featured })
-        ]);
+        const cacheKey = `products:${page}:${limit}:${category || 'all'}:${sort}:${featured}`;
 
-        const products = productsResp.products;
-        const total = productsResp.total;
+        const result = await cached(cacheKey, CACHE_TTL, async () => {
+            const [categoriesResp, productsResp] = await Promise.all([
+                cached('categories:all', 2 * 60 * 1000, getAllCategories),
+                category
+                    ? getProductsByCategory(category, { page, limit, sort, featuredOnly: featured })
+                    : getActiveProducts({ page, limit, sort, featuredOnly: featured })
+            ]);
 
-        const settings = await getStoreSettings();
+            const settings = await cached('settings:store', 5 * 60 * 1000, getStoreSettings);
 
-        return NextResponse.json({
-            success: true,
-            products,
-            categories: categoriesResp,
-            lowStockThreshold: settings.low_stock_threshold,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit),
-            },
-        }, {
+            return {
+                success: true,
+                products: productsResp.products,
+                categories: categoriesResp,
+                lowStockThreshold: settings.low_stock_threshold,
+                pagination: {
+                    page,
+                    limit,
+                    total: productsResp.total,
+                    totalPages: Math.ceil(productsResp.total / limit),
+                },
+            };
+        });
+
+        return NextResponse.json(result, {
             headers: {
-                'Cache-Control': 'no-store, no-cache, must-revalidate',
+                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
             },
         });
     } catch (error) {
@@ -66,5 +66,3 @@ export async function GET(req: NextRequest) {
         );
     }
 }
-
-

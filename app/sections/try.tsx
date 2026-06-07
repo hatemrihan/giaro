@@ -29,7 +29,7 @@ export default function TrySection() {
 
     // ── Fetch products ────────────────────────────────────────
     useEffect(() => {
-        fetch('/api/products?limit=8', { cache: 'no-store' })
+        fetch('/api/products?limit=8')
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.products) {

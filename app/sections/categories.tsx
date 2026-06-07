@@ -75,7 +75,7 @@ export default function Categories() {
 
         async function fetchCategories() {
             try {
-                const res = await fetch('/api/categories', { cache: 'no-store' });
+                const res = await fetch('/api/categories');
                 const data = await res.json();
                 if (!cancelled && data.success) {
                     setCategories(data.categories);

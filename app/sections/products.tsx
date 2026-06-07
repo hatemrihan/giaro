@@ -60,7 +60,7 @@ export default function Products() {
                                 {/* Image Container */}
                                 <div className="relative w-full xl:w-[380px] overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]">
                                     <video
-                                        src="/videos/four.mov"
+                                        src="/videos/four.mp4"
                                         autoPlay
                                         muted
                                         loop
@@ -87,7 +87,7 @@ export default function Products() {
                                 {/* Image Container */}
                                 <div className="relative w-full overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]">
                                     <video
-                                        src="/videos/five.mov"
+                                        src="/videos/five.mp4"
                                         autoPlay
                                         muted
                                         loop
@@ -116,7 +116,7 @@ export default function Products() {
             {/* Video Section */}
             <section className="relative w-full h-[75dvh] overflow-hidden">
                 <video
-                    src="/videos/one.mov"
+                    src="/videos/one.mp4"
                     autoPlay
                     muted
                     loop
