@@ -33,11 +33,12 @@ export default function LimitOffer() {
     useEffect(() => {
         fetch('/api/offers?page=homepage')
             .then(res => res.json())
-            .then(async (data: Offer[]) => {
-                setOffers(data);
+            .then(async (data) => {
+                const offersArr = Array.isArray(data) ? data : [];
+                setOffers(offersArr);
 
                 // Collect all product IDs from offers
-                const allProductIds = data.flatMap(o => o.product_ids || []);
+                const allProductIds = offersArr.flatMap((o: Offer) => o.product_ids || []);
                 if (allProductIds.length > 0) {
                     try {
                         const res = await fetch('/api/products/batch', {

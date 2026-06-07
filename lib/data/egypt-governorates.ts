@@ -7,6 +7,8 @@ export type Governorate = {
     name: string;
     nameEn: string;
     cities: string[];
+    /** When true, each city gets its own shipping/COD pricing row in the admin panel */
+    subCityPricing?: boolean;
 };
 
 export const EGYPT_GOVERNORATES: Governorate[] = [
@@ -28,7 +30,29 @@ export const EGYPT_GOVERNORATES: Governorate[] = [
     {
         name: 'الدقهلية',
         nameEn: 'Dakahlia',
-        cities: ['المنصورة', 'طلخا', 'ميت غمر', 'دكرنس', 'أجا', 'السنبلاوين', 'شربين', 'بلقاس', 'المنزلة'],
+        subCityPricing: true,
+        cities: [
+            'المنصورة (العاصمة)',
+            'ميت غمر',
+            'أجا',
+            'السنبلاوين',
+            'طلخا',
+            'بلقاس',
+            'دكرنس',
+            'شربين',
+            'منية النصر',
+            'المطرية',
+            'المنزلة',
+            'جمصة',
+            'الكردي',
+            'تمي الأمديد',
+            'بني عبيد',
+            'ميت سلسيل',
+            'الجمالية',
+            'نبروه',
+            'محلة دمنة',
+            'استاموني',
+        ],
     },
     {
         name: 'البحيرة',

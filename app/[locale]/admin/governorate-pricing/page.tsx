@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Save, MapPin, Truck, Banknote, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Save, MapPin, Truck, Banknote, CheckCircle2, AlertCircle, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { EGYPT_GOVERNORATES } from '@/lib/data/egypt-governorates';
@@ -23,6 +23,7 @@ export default function GovernoratePricingPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [editedRows, setEditedRows] = useState<Set<string>>(new Set());
+    const [expandedGovs, setExpandedGovs] = useState<Set<string>>(new Set());
     const [error, setError] = useState('');
 
     // ── Fetch existing pricing ─────────────────────────────
@@ -36,31 +37,61 @@ export default function GovernoratePricingPage() {
             const data = await res.json();
 
             if (data.success && data.pricing) {
-                // Merge with full governorate list
+                // Merge with full governorate list + sub-cities
                 const pricingMap = new Map(
                     data.pricing.map((p: GovPricing) => [p.governorate, p])
                 );
 
-                const merged = EGYPT_GOVERNORATES.map(gov => {
-                    const existing = pricingMap.get(gov.name) as GovPricing | undefined;
-                    return {
-                        id: existing?.id,
+                const merged: GovPricing[] = [];
+                EGYPT_GOVERNORATES.forEach(gov => {
+                    // 1. Add parent governorate
+                    const existingParent = pricingMap.get(gov.name) as GovPricing | undefined;
+                    merged.push({
+                        id: existingParent?.id,
                         governorate: gov.name,
-                        shipping_cost: existing?.shipping_cost ?? 0,
-                        cod_fee: existing?.cod_fee ?? 0,
-                        is_active: existing?.is_active ?? true,
-                    };
+                        shipping_cost: existingParent?.shipping_cost ?? 0,
+                        cod_fee: existingParent?.cod_fee ?? 0,
+                        is_active: existingParent?.is_active ?? true,
+                    });
+
+                    // 2. Add sub-cities if per-city pricing is enabled
+                    if (gov.subCityPricing) {
+                        gov.cities.forEach(city => {
+                            const subKey = `${gov.name} - ${city}`;
+                            const existingSub = pricingMap.get(subKey) as GovPricing | undefined;
+                            merged.push({
+                                id: existingSub?.id,
+                                governorate: subKey,
+                                shipping_cost: existingSub?.shipping_cost ?? existingParent?.shipping_cost ?? 0,
+                                cod_fee: existingSub?.cod_fee ?? existingParent?.cod_fee ?? 0,
+                                is_active: existingSub?.is_active ?? existingParent?.is_active ?? true,
+                            });
+                        });
+                    }
                 });
 
                 setPricing(merged);
             } else {
-                // No data yet — initialize with defaults  
-                const defaults = EGYPT_GOVERNORATES.map(gov => ({
-                    governorate: gov.name,
-                    shipping_cost: 0,
-                    cod_fee: 0,
-                    is_active: true,
-                }));
+                // No data yet — initialize with defaults
+                const defaults: GovPricing[] = [];
+                EGYPT_GOVERNORATES.forEach(gov => {
+                    defaults.push({
+                        governorate: gov.name,
+                        shipping_cost: 0,
+                        cod_fee: 0,
+                        is_active: true,
+                    });
+                    if (gov.subCityPricing) {
+                        gov.cities.forEach(city => {
+                            defaults.push({
+                                governorate: `${gov.name} - ${city}`,
+                                shipping_cost: 0,
+                                cod_fee: 0,
+                                is_active: true,
+                            });
+                        });
+                    }
+                });
                 setPricing(defaults);
             }
         } catch {
@@ -69,6 +100,19 @@ export default function GovernoratePricingPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    // ── Toggle sub-menu expansion ──────────────────────────
+    const toggleExpand = (govName: string) => {
+        setExpandedGovs(prev => {
+            const next = new Set(prev);
+            if (next.has(govName)) {
+                next.delete(govName);
+            } else {
+                next.add(govName);
+            }
+            return next;
+        });
     };
 
     // ── Update a single row ─────────────────────────────────
@@ -103,7 +147,7 @@ export default function GovernoratePricingPage() {
             const data = await res.json();
 
             if (data.success) {
-                toast.success(`All ${EGYPT_GOVERNORATES.length} governorates saved successfully`, {
+                toast.success('All pricing configurations saved successfully', {
                     id: toastId,
                     duration: 3000,
                 });
@@ -122,12 +166,12 @@ export default function GovernoratePricingPage() {
     // ── Set same price for all ──────────────────────────────
     const setAllShipping = (val: number) => {
         setPricing(prev => prev.map(p => ({ ...p, shipping_cost: val })));
-        setEditedRows(new Set(EGYPT_GOVERNORATES.map(g => g.name)));
+        setEditedRows(new Set(pricing.map(p => p.governorate)));
     };
 
     const setAllCod = (val: number) => {
         setPricing(prev => prev.map(p => ({ ...p, cod_fee: val })));
-        setEditedRows(new Set(EGYPT_GOVERNORATES.map(g => g.name)));
+        setEditedRows(new Set(pricing.map(p => p.governorate)));
     };
 
     // ── Counts ──────────────────────────────────────────────
@@ -178,7 +222,7 @@ export default function GovernoratePricingPage() {
                     <div className="text-[13px] text-stone-500 mb-1">Settings</div>
                     <h1 className="text-xl font-semibold text-white">Shipping & COD Pricing</h1>
                     <p className="text-[12px] text-stone-500 mt-1">
-                        Manage shipping costs and cash-on-delivery fees for all {EGYPT_GOVERNORATES.length} Egyptian governorates
+                        Manage shipping costs and cash-on-delivery fees for all Egyptian governorates and cities
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -207,7 +251,7 @@ export default function GovernoratePricingPage() {
                         </div>
                         <div>
                             <p className="text-[18px] font-semibold text-white">{EGYPT_GOVERNORATES.length}</p>
-                            <p className="text-[11px] text-stone-500">Total Governorates</p>
+                            <p className="text-[11px] text-stone-500">Governorates</p>
                         </div>
                     </div>
                 </div>
@@ -218,7 +262,7 @@ export default function GovernoratePricingPage() {
                         </div>
                         <div>
                             <p className="text-[18px] font-semibold text-white">{activeCount}</p>
-                            <p className="text-[11px] text-stone-500">Active</p>
+                            <p className="text-[11px] text-stone-500">Active Zones</p>
                         </div>
                     </div>
                 </div>
@@ -229,7 +273,7 @@ export default function GovernoratePricingPage() {
                         </div>
                         <div>
                             <p className="text-[18px] font-semibold text-white">{configuredCount}</p>
-                            <p className="text-[11px] text-stone-500">Configured</p>
+                            <p className="text-[11px] text-stone-500">Configured Zones</p>
                         </div>
                     </div>
                 </div>
@@ -237,7 +281,7 @@ export default function GovernoratePricingPage() {
 
             {/* ── Quick Set ───────────────────────────────── */}
             <div className="bg-stone-800/30 border border-stone-800/50 rounded-xl p-4 mb-6">
-                <p className="text-[12px] text-stone-400 font-medium mb-3">Quick Set — Apply to all governorates</p>
+                <p className="text-[12px] text-stone-400 font-medium mb-3">Quick Set — Apply to all governorates and cities</p>
                 <div className="flex items-center gap-4 flex-wrap">
                     <div className="flex items-center gap-2">
                         <Truck className="h-3.5 w-3.5 text-stone-500" />
@@ -278,7 +322,7 @@ export default function GovernoratePricingPage() {
                                 #
                             </th>
                             <th className="text-left px-5 py-3 text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
-                                Governorate
+                                Governorate / City
                             </th>
                             <th className="text-left px-5 py-3 text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
                                 Shipping Cost (EGP)
@@ -293,36 +337,76 @@ export default function GovernoratePricingPage() {
                     </thead>
                     <tbody>
                         {pricing.map((row, index) => {
-                            const govData = EGYPT_GOVERNORATES.find(g => g.name === row.governorate);
+                            const isSubCity = row.governorate.includes(' - ');
+                            const [parentName, cityName] = isSubCity ? row.governorate.split(' - ') : [row.governorate, ''];
+                            const govData = EGYPT_GOVERNORATES.find(g => g.name === parentName);
+
+                            // If it's a sub-city and parent is not expanded, don't render it
+                            if (isSubCity && !expandedGovs.has(parentName)) {
+                                return null;
+                            }
+
+                            const isExpanded = expandedGovs.has(parentName);
+                            const hasSubPricing = govData?.subCityPricing;
                             const isEdited = editedRows.has(row.governorate);
 
                             return (
                                 <tr
                                     key={row.governorate}
                                     className={`border-b border-stone-800/30 transition-colors ${
-                                        isEdited ? 'bg-amber-500/5' : 'hover:bg-stone-800/20'
+                                        isSubCity
+                                            ? 'bg-stone-900/20 hover:bg-stone-800/10'
+                                            : isEdited
+                                                ? 'bg-amber-500/5'
+                                                : 'hover:bg-stone-800/20'
                                     }`}
                                 >
                                     {/* Index */}
                                     <td className="px-5 py-3">
-                                        <span className="text-[11px] text-stone-600 font-mono">
-                                            {(index + 1).toString().padStart(2, '0')}
-                                        </span>
+                                        {isSubCity ? (
+                                            <span className="text-[11px] text-stone-700 font-mono pl-3">↳</span>
+                                        ) : (
+                                            <span className="text-[11px] text-stone-600 font-mono">
+                                                {(index + 1).toString().padStart(2, '0')}
+                                            </span>
+                                        )}
                                     </td>
 
-                                    {/* Governorate Name */}
+                                    {/* Governorate/City Name */}
                                     <td className="px-5 py-3">
-                                        <div className="flex items-center gap-3">
+                                        <div className={`flex items-center gap-3 ${isSubCity ? 'pl-6' : ''}`}>
+                                            {!isSubCity && hasSubPricing ? (
+                                                <button
+                                                    onClick={() => toggleExpand(row.governorate)}
+                                                    className="w-5 h-5 rounded hover:bg-stone-800 flex items-center justify-center text-stone-400 hover:text-white transition-colors cursor-pointer"
+                                                >
+                                                    {isExpanded ? (
+                                                        <ChevronDown className="h-3.5 w-3.5" />
+                                                    ) : (
+                                                        <ChevronRight className="h-3.5 w-3.5" />
+                                                    )}
+                                                </button>
+                                            ) : !isSubCity ? (
+                                                <div className="w-5" /> // spacer to align with chevron
+                                            ) : null}
+
                                             <div className={`w-2 h-2 rounded-full shrink-0 ${
                                                 row.is_active ? 'bg-green-400' : 'bg-stone-600'
                                             }`} />
                                             <div>
                                                 <p className="text-[13px] font-medium text-white">
-                                                    {row.governorate}
+                                                    {isSubCity ? cityName : row.governorate}
+                                                    {!isSubCity && hasSubPricing && (
+                                                        <span className="ml-2 text-[10px] text-amber-400 font-medium px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded">
+                                                            Detailed Pricing
+                                                        </span>
+                                                    )}
                                                 </p>
-                                                <p className="text-[11px] text-stone-500">
-                                                    {govData?.nameEn}
-                                                </p>
+                                                {!isSubCity && (
+                                                    <p className="text-[11px] text-stone-500">
+                                                        {govData?.nameEn}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </td>

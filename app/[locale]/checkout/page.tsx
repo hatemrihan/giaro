@@ -9,6 +9,7 @@ import { CustomerInfoForm } from './_components/CustomerInfoForm';
 import { PaymentMethodSelector } from './_components/PaymentMethodSelector';
 import { OrderSummary } from './_components/OrderSummary';
 import { useAnalytics } from '@/lib/analytics';
+import { EGYPT_GOVERNORATES } from '@/lib/data/egypt-governorates';
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -170,9 +171,13 @@ export default function CheckoutPage() {
     };
 
     // ── Computed pricing ──────────────────────────────────────
-    const selectedPricing = governoratePricing.find(
-        g => g.governorate === customer.governorate
-    );
+    const selectedPricing = governoratePricing.find(g => {
+        const govData = EGYPT_GOVERNORATES.find(eg => eg.name === customer.governorate);
+        if (govData?.subCityPricing) {
+            return g.governorate === `${customer.governorate} - ${customer.city}`;
+        }
+        return g.governorate === customer.governorate;
+    }) || governoratePricing.find(g => g.governorate === customer.governorate);
 
     const shippingCost = selectedPricing?.shipping_cost ?? 0;
     const codFee = payment.method === 'cashOnDelivery' ? (selectedPricing?.cod_fee ?? 0) : 0;
