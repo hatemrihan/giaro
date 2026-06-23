@@ -15,18 +15,14 @@ type Category = {
     image_url: string | null;
 };
 
-type CategoriesProps = {
-    initialCategories?: Category[];
-};
-
 // ── Component ─────────────────────────────────────────────────
 
-export default function Categories({ initialCategories }: CategoriesProps) {
+export default function Categories() {
     const t = useTranslations('categories');
     const pathname = usePathname();
     const locale = pathname.match(/^\/(ar|en)/)?.[1] || 'ar';
-    const [categories, setCategories] = useState<Category[]>(initialCategories ?? []);
-    const [loading, setLoading] = useState(!initialCategories || initialCategories.length === 0);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
     // ── Drag-to-scroll state ──────────────────────────────────
@@ -74,10 +70,7 @@ export default function Categories({ initialCategories }: CategoriesProps) {
         }
     }, []);
 
-    // Only fetch client-side if no initial data was provided
     useEffect(() => {
-        if (initialCategories && initialCategories.length > 0) return;
-
         let cancelled = false;
 
         async function fetchCategories() {
@@ -97,7 +90,7 @@ export default function Categories({ initialCategories }: CategoriesProps) {
 
         fetchCategories();
         return () => { cancelled = true; };
-    }, [initialCategories]);
+    }, []);
 
     // ── Don't render if no categories ─────────────────────────
     if (!loading && error) return null;
