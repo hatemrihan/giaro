@@ -155,7 +155,7 @@ export function ProductClient({ initialProduct, relatedProducts, lowStockThresho
             } catch {
                 // Silently handle fetch errors during polling
             }
-        }, 30000);
+        }, 120_000); // Poll every 2 minutes (was 30s — reduced to lower egress)
 
         return () => clearInterval(interval);
     }, [product?.id]);

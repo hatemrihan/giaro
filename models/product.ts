@@ -48,6 +48,15 @@ export type ProductListItem = Pick<
 
 // ─── Service ──────────────────────────────────────────────────
 
+/** Lean select for product cards in grids — minimal egress */
+const CARD_SELECT = [
+    'id', 'slug', 'name', 'price', 'original_price', 'discount',
+    'main_image', 'variants', 'stock', 'is_active', 'is_featured',
+    'order', 'show_out_of_stock_badge', 'show_preorder_badge',
+    'categories', 'created_at',
+].join(', ');
+
+/** Full select for product detail pages and admin */
 const LIST_SELECT = [
     'id', 'slug', 'name', 'price', 'original_price', 'discount',
     'main_image', 'images', 'videos', 'description', 'promo_code',
@@ -57,6 +66,9 @@ const LIST_SELECT = [
     'shipping_info', 'faqs', 'detailed_description',
     'created_at',
 ].join(', ');
+
+/** Minimal select for stock polling — avoids all heavy JSONB columns */
+const STOCK_SELECT = 'stock, variants';
 
 /**
  * Fetch paginated active products for the storefront.
@@ -74,7 +86,7 @@ export async function getActiveProducts(options: {
 
     let query = supabaseAdmin
         .from('products')
-        .select(LIST_SELECT, { count: 'exact' })
+        .select(CARD_SELECT, { count: 'exact' })
         .eq('is_active', true)
         .range(from, to);
 
@@ -181,7 +193,7 @@ export async function getProductsByCategory(category: string, options: {
 
     let query = supabaseAdmin
         .from('products')
-        .select(LIST_SELECT, { count: 'exact' })
+        .select(CARD_SELECT, { count: 'exact' })
         .eq('is_active', true)
         .contains('categories', [category])
         .range(from, to);
@@ -216,7 +228,7 @@ export async function getRelatedProducts(
 
     const { data, error } = await supabaseAdmin
         .from('products')
-        .select(LIST_SELECT)
+        .select(CARD_SELECT)
         .eq('is_active', true)
         .neq('id', excludeId)
         .overlaps('categories', validCategories)
@@ -361,6 +373,7 @@ export async function toggleAllProductsVisibility(visible: boolean): Promise<num
 /**
  * Search active products by name or description.
  * Returns a small set for the storefront search overlay.
+ * Uses CARD_SELECT to minimize egress — search results only need card-level data.
  */
 export async function searchProducts(query: string, limit = 10): Promise<ProductListItem[]> {
     if (!query || query.trim().length === 0) return [];
@@ -370,7 +383,7 @@ export async function searchProducts(query: string, limit = 10): Promise<Product
 
     const { data, error } = await supabaseAdmin
         .from('products')
-        .select(LIST_SELECT)
+        .select(CARD_SELECT)
         .eq('is_active', true)
         .or(`name.ilike.${term},description.ilike.${term}`)
         .order('created_at', { ascending: false })
@@ -378,4 +391,42 @@ export async function searchProducts(query: string, limit = 10): Promise<Product
 
     if (error) throw new Error(`Failed to search products: ${error.message}`);
     return (data as unknown as ProductListItem[]) ?? [];
+}
+
+/**
+ * Fetch only stock and variants for a product.
+ * Used by the stock polling endpoint — avoids fetching heavy JSONB columns.
+ */
+export async function getProductStock(id: string): Promise<{ stock: number; variants: ProductRow['variants'] } | null> {
+    const { data, error } = await supabaseAdmin
+        .from('products')
+        .select(STOCK_SELECT)
+        .eq('id', id)
+        .maybeSingle();
+
+    if (error) throw new Error(`Failed to fetch product stock: ${error.message}`);
+    return data as { stock: number; variants: ProductRow['variants'] } | null;
+}
+
+/**
+ * Fetch lean product data by IDs — only what batch endpoint needs.
+ * Avoids SELECT * which returns all JSONB columns unnecessarily.
+ */
+export async function getProductsByIdsLean(ids: string[]): Promise<Array<{
+    id: string; name: string; slug: string; main_image: string;
+    price: number; original_price: number | null;
+}>> {
+    if (ids.length === 0) return [];
+
+    const { data, error } = await supabaseAdmin
+        .from('products')
+        .select('id, name, slug, main_image, price, original_price')
+        .in('id', ids)
+        .eq('is_active', true);
+
+    if (error) throw new Error(`Failed to fetch products by ids (lean): ${error.message}`);
+    return (data ?? []) as Array<{
+        id: string; name: string; slug: string; main_image: string;
+        price: number; original_price: number | null;
+    }>;
 }

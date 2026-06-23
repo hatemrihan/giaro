@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProductById } from '@/models/product';
+import { getProductStock } from '@/models/product';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,15 +14,15 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const product = await getProductById(id);
+        // ✅ Only fetch stock + variants — not the entire product row
+        const stockData = await getProductStock(id);
 
-        if (!product) return NextResponse.json({ success: false, error: 'Product not found..' }, { status: 404 });
+        if (!stockData) return NextResponse.json({ success: false, error: 'Product not found..' }, { status: 404 });
 
-        // ✅ Trim the response to only what the poller actually uses
         return NextResponse.json({
             success: true,
-            stock: product.stock,
-            variants: product.variants.map(v => ({
+            stock: stockData.stock,
+            variants: stockData.variants.map(v => ({
                 attributes: v.attributes,
                 stock: v.stock,
                 price: v.price ?? null,
@@ -34,3 +34,4 @@ export async function GET(req: NextRequest) {
     }
 
 }
+

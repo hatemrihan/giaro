@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProductsByIds } from '@/models/product';
+import { getProductsByIdsLean } from '@/models/product';
 
 /**
  * POST /api/products/batch
- * Fetch multiple products by IDs.
+ * Fetch multiple products by IDs (lean — only card-level fields).
  * Body: { ids: string[] }
  */
 export async function POST(req: NextRequest) {
@@ -12,17 +12,12 @@ export async function POST(req: NextRequest) {
         if (!Array.isArray(ids) || ids.length === 0) {
             return NextResponse.json([]);
         }
-        const products = await getProductsByIds(ids.slice(0, 50));
-        return NextResponse.json(products.map(p => ({
-            id: p.id,
-            name: p.name,
-            slug: p.slug,
-            main_image: p.main_image,
-            price: p.price,
-            original_price: p.original_price,
-        })));
+        // ✅ Fetches only 6 columns at the DB level — no wasteful SELECT *
+        const products = await getProductsByIdsLean(ids.slice(0, 50));
+        return NextResponse.json(products);
     } catch (error) {
         console.error('[POST /api/products/batch]', error);
         return NextResponse.json([], { status: 500 });
     }
 }
+

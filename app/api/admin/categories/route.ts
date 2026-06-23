@@ -4,6 +4,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/route';
+import sharp from 'sharp';
+import { isR2Configured, uploadToR2, generateR2Key } from '@/lib/r2';
+
+// ─── Constants ────────────────────────────────────────────────
+const MAX_IMAGE_WIDTH = 1200;
+const WEBP_QUALITY = 80;
+
 // ─── Helpers ──────────────────────────────────────────────────
 
 /** Strip HTML tags to prevent XSS in category names. */
@@ -57,21 +64,31 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ success: false, error: 'Image size must be less than 5MB' }, { status: 400 });
             }
 
-            const ext = file.name.split('.').pop() || 'jpg';
-            const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-            const buffer = Buffer.from(await file.arrayBuffer());
+            const rawBuffer = Buffer.from(await file.arrayBuffer());
 
-            const { error: uploadError } = await supabaseAdmin.storage
-                .from('categories')
-                .upload(filename, buffer, { contentType: file.type, upsert: false });
+            // ✅ Compress to WebP before upload
+            const compressedBuffer = await sharp(rawBuffer)
+                .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+                .webp({ quality: WEBP_QUALITY })
+                .toBuffer();
 
-            if (uploadError) {
-                console.error('[Upload Error]', uploadError);
-                return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
+            if (isR2Configured) {
+                const key = generateR2Key('categories', 'webp');
+                imageUrl = await uploadToR2(compressedBuffer, key, 'image/webp');
+            } else {
+                const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.webp`;
+                const { error: uploadError } = await supabaseAdmin.storage
+                    .from('categories')
+                    .upload(filename, compressedBuffer, { contentType: 'image/webp', upsert: false });
+
+                if (uploadError) {
+                    console.error('[Upload Error]', uploadError);
+                    return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
+                }
+
+                const { data } = supabaseAdmin.storage.from('categories').getPublicUrl(filename);
+                imageUrl = data.publicUrl;
             }
-
-            const { data } = supabaseAdmin.storage.from('categories').getPublicUrl(filename);
-            imageUrl = data.publicUrl;
         }
 
         if (!rawName || typeof rawName !== 'string') {
@@ -161,21 +178,31 @@ export async function PATCH(req: NextRequest) {
                 return NextResponse.json({ success: false, error: 'Image size must be less than 5MB' }, { status: 400 });
             }
 
-            const ext = file.name.split('.').pop() || 'jpg';
-            const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-            const buffer = Buffer.from(await file.arrayBuffer());
+            const rawBuffer = Buffer.from(await file.arrayBuffer());
 
-            const { error: uploadError } = await supabaseAdmin.storage
-                .from('categories')
-                .upload(filename, buffer, { contentType: file.type, upsert: false });
+            // ✅ Compress to WebP before upload
+            const compressedBuffer = await sharp(rawBuffer)
+                .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+                .webp({ quality: WEBP_QUALITY })
+                .toBuffer();
 
-            if (uploadError) {
-                console.error('[Upload Error]', uploadError);
-                return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
+            if (isR2Configured) {
+                const key = generateR2Key('categories', 'webp');
+                updates.image_url = await uploadToR2(compressedBuffer, key, 'image/webp');
+            } else {
+                const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.webp`;
+                const { error: uploadError } = await supabaseAdmin.storage
+                    .from('categories')
+                    .upload(filename, compressedBuffer, { contentType: 'image/webp', upsert: false });
+
+                if (uploadError) {
+                    console.error('[Upload Error]', uploadError);
+                    return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
+                }
+
+                const { data } = supabaseAdmin.storage.from('categories').getPublicUrl(filename);
+                updates.image_url = data.publicUrl;
             }
-
-            const { data } = supabaseAdmin.storage.from('categories').getPublicUrl(filename);
-            updates.image_url = data.publicUrl;
         }
 
         if (Object.keys(updates).length === 0) {
