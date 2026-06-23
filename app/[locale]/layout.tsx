@@ -16,14 +16,10 @@ const messagesMap: Record<string, typeof enMessages> = {
 
 const pingFont = localFont({
   src: [
-    { path: '../../public/fonts/ping/ping-ar-lt-hairline.otf', weight: '100', style: 'normal' },
-    { path: '../../public/fonts/ping/ping-ar-lt-thin.otf', weight: '200', style: 'normal' },
-    { path: '../../public/fonts/ping/ping-ar-lt-extralight.otf', weight: '300', style: 'normal' },
     { path: '../../public/fonts/ping/ping-ar-lt-regular.otf', weight: '400', style: 'normal' },
     { path: '../../public/fonts/ping/ping-ar-lt-medium.otf', weight: '500', style: 'normal' },
     { path: '../../public/fonts/ping/ping-ar-lt-bold.otf', weight: '700', style: 'normal' },
     { path: '../../public/fonts/ping/ping-ar-lt-heavy.otf', weight: '800', style: 'normal' },
-    { path: '../../public/fonts/ping/ping-ar-lt-black.otf', weight: '900', style: 'normal' },
   ],
   variable: '--font-ping',
   display: 'swap',
@@ -32,11 +28,8 @@ const pingFont = localFont({
 const seasonsFont = localFont({
   src: [
     { path: '../../public/fonts/fontspring/Fontspring-DEMO-theseasons-lt.otf', weight: '300', style: 'normal' },
-    { path: '../../public/fonts/fontspring/Fontspring-DEMO-theseasons-ltit.otf', weight: '300', style: 'italic' },
     { path: '../../public/fonts/fontspring/Fontspring-DEMO-theseasons-reg.otf', weight: '400', style: 'normal' },
-    { path: '../../public/fonts/fontspring/Fontspring-DEMO-theseasons-it.otf', weight: '400', style: 'italic' },
     { path: '../../public/fonts/fontspring/Fontspring-DEMO-theseasons-bd.otf', weight: '700', style: 'normal' },
-    { path: '../../public/fonts/fontspring/Fontspring-DEMO-theseasons-bdit.otf', weight: '700', style: 'italic' },
   ],
   variable: '--font-seasons',
   display: 'swap',

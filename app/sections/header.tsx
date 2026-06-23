@@ -24,6 +24,7 @@ export default function Header() {
                     muted
                     loop
                     playsInline
+                    preload="metadata"
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0  pointer-events-none" />

@@ -23,14 +23,40 @@ interface Product {
     original_price: number | null;
 }
 
-export default function LimitOffer() {
-    const [offers, setOffers] = useState<Offer[]>([]);
+type LimitOfferProps = {
+    initialOffers?: Offer[];
+};
+
+export default function LimitOffer({ initialOffers }: LimitOfferProps) {
+    const [offers, setOffers] = useState<Offer[]>(initialOffers ?? []);
     const [products, setProducts] = useState<Map<string, Product>>(new Map());
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!initialOffers || initialOffers.length === 0);
     const [inView, setInView] = useState(false);
     const sectionRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // If we have initial offers from SSR, just fetch products for them
+        if (initialOffers && initialOffers.length > 0) {
+            const allProductIds = initialOffers.flatMap((o: Offer) => o.product_ids || []);
+            if (allProductIds.length > 0) {
+                fetch('/api/products/batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: allProductIds }),
+                })
+                    .then(res => res.ok ? res.json() : [])
+                    .then(productData => {
+                        const map = new Map<string, Product>();
+                        (Array.isArray(productData) ? productData : []).forEach((p: Product) => map.set(p.id, p));
+                        setProducts(map);
+                    })
+                    .catch(() => { /* fallback to offer data */ });
+            }
+            setLoading(false);
+            return;
+        }
+
+        // Fallback: client-side fetch if no initial data
         fetch('/api/offers?page=homepage')
             .then(res => res.json())
             .then(async (data) => {
@@ -57,7 +83,7 @@ export default function LimitOffer() {
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, []);
+    }, [initialOffers]);
 
     // IntersectionObserver for in-view animation
     useEffect(() => {

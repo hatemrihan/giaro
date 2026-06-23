@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import LazyVideo from '@/components/LazyVideo';
 
 export default function Products() {
     const t = useTranslations('productsSection');
@@ -57,14 +58,10 @@ export default function Products() {
 
                             {/* Product 4 */}
                             <div className="flex flex-col xl:flex-row items-start gap-3 sm:gap-6 group cursor-pointer">
-                                {/* Image Container */}
+                                {/* Video Container — lazy loaded */}
                                 <div className="relative w-full xl:w-[380px] overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]">
-                                    <video
+                                    <LazyVideo
                                         src="/videos/four.mp4"
-                                        autoPlay
-                                        muted
-                                        loop
-                                        playsInline
                                         className="w-full h-auto object-cover"
                                     />
                                 </div>
@@ -84,14 +81,10 @@ export default function Products() {
 
                             {/* Product 1 */}
                             <div className="flex flex-col items-start gap-3 sm:gap-6 group cursor-pointer w-full">
-                                {/* Image Container */}
+                                {/* Video Container — lazy loaded */}
                                 <div className="relative w-full overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]">
-                                    <video
+                                    <LazyVideo
                                         src="/videos/five.mp4"
-                                        autoPlay
-                                        muted
-                                        loop
-                                        playsInline
                                         className="w-full h-auto object-cover border-none outline-none"
                                     />
                                 </div>
@@ -113,14 +106,10 @@ export default function Products() {
                 </div>
             </section>
 
-            {/* Video Section */}
+            {/* Video Section — lazy loaded */}
             <section className="relative w-full h-[75dvh] overflow-hidden">
-                <video
+                <LazyVideo
                     src="/videos/one.mp4"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 pointer-events-none" />
@@ -128,4 +117,3 @@ export default function Products() {
         </>
     );
 }
-

@@ -7,6 +7,8 @@ import Footer from './../sections/footer';
 import Products from '../sections/products';
 import Words from '../sections/words';
 import MovingWords from '../sections/MovingWords';
+import { getAllCategories } from '@/models/category';
+import { getActiveOffers } from '@/models/offer';
 
 const BASE_URL = 'https://giaromart.com';
 
@@ -46,6 +48,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Home({ params }: Props) {
     const { locale } = await params;
 
+    // ── Fetch data server-side (eliminates client-side API round-trips) ──
+    let categories: { id: string; name: string; image_url: string | null }[] = [];
+    let offers: { id: string; title: string; description: string; image: string; link: string; product_ids: string[]; discount_label: string }[] = [];
+
+    try {
+        const [categoriesData, offersData] = await Promise.all([
+            getAllCategories(),
+            getActiveOffers({ page: 'homepage' }),
+        ]);
+        categories = categoriesData.map(c => ({
+            id: c.id,
+            name: c.name,
+            image_url: c.image_url,
+        }));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        offers = (offersData as any[]).map(o => ({
+            id: o.id,
+            title: o.title || '',
+            description: o.description || '',
+            image: o.image || '',
+            link: o.link || '',
+            product_ids: o.product_ids || [],
+            discount_label: o.discount_label || '',
+        }));
+    } catch (err) {
+        console.error('[Home] Failed to prefetch data:', err);
+        // Components will fall back to client-side fetching
+    }
+
     // ── JSON-LD: Organization & WebSite ──────────────────────
     const organizationLd = {
         '@context': 'https://schema.org',
@@ -83,9 +114,9 @@ export default async function Home({ params }: Props) {
             />
             <Nav />
             <Header />
-            <Categories />
+            <Categories initialCategories={categories} />
             <MovingWords />
-            <LimitOffer />
+            <LimitOffer initialOffers={offers} />
             <Products />
             <Words />
             <Footer />
