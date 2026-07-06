@@ -20,7 +20,9 @@
  *   6. Logs progress and errors
  */
 
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
@@ -66,7 +68,6 @@ const r2 = new S3Client({
 
 // ─── Helpers ──────────────────────────────────────────────────
 
-const SUPABASE_STORAGE_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/`;
 
 function isSupabaseUrl(url: string | null): boolean {
     return !!url && url.includes('supabase.co/storage/');
@@ -111,8 +112,7 @@ async function uploadToR2(buffer: Buffer, key: string, contentType: string): Pro
     return `${R2_PUBLIC_URL}/${key}`;
 }
 
-function generateKey(folder: string, originalUrl: string): string {
-    // Extract original filename or generate new one
+function generateKey(folder: string): string {
     const ext = 'webp'; // Everything gets compressed to WebP
     return `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 }
@@ -123,7 +123,7 @@ async function migrateUrl(url: string, folder: string): Promise<string | null> {
     const result = await downloadAndCompress(url);
     if (!result) return null;
 
-    const key = generateKey(folder, url);
+    const key = generateKey(folder);
     return await uploadToR2(result.buffer, key, result.contentType);
 }
 

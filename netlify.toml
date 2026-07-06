@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# ── Static Assets (immutable) ──────────────────────────────────
 [[headers]]
   for = "/_next/static/*"
   [headers.values]
@@ -14,3 +15,41 @@
   for = "/videos/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Next.js Image Optimizer Cache ──────────────────────────────
+[[headers]]
+  for = "/_next/image*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+# ── API: Cacheable Public Data ─────────────────────────────────
+# Categories change rarely — cache 2 min, serve stale up to 5 min
+[[headers]]
+  for = "/api/categories"
+  [headers.values]
+    Cache-Control = "public, s-maxage=120, stale-while-revalidate=300"
+
+# Product listings — cache 1 min, serve stale up to 2 min
+[[headers]]
+  for = "/api/products"
+  [headers.values]
+    Cache-Control = "public, s-maxage=60, stale-while-revalidate=120"
+
+# Offers — cache 2 min
+[[headers]]
+  for = "/api/offers"
+  [headers.values]
+    Cache-Control = "public, s-maxage=120, stale-while-revalidate=300"
+
+# Governorate pricing — changes very rarely, cache 5 min
+[[headers]]
+  for = "/api/governorate-pricing"
+  [headers.values]
+    Cache-Control = "public, s-maxage=300, stale-while-revalidate=600"
+
+# Drop points — changes rarely, cache 5 min
+[[headers]]
+  for = "/api/drop-points"
+  [headers.values]
+    Cache-Control = "public, s-maxage=300, stale-while-revalidate=600"
+
