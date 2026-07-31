@@ -140,7 +140,7 @@ function ShopClientInner() {
                                 onPageChange={handlePageChange}
                             />
                             <div className="mt-2 text-center text-[12px] text-neutral-400">
-                                {locale === 'ar' 
+                                {locale === 'ar'
                                     ? `صفحة ${pagination.page.toLocaleString('ar-EG')} من ${pagination.totalPages.toLocaleString('ar-EG')} • ${pagination.total.toLocaleString('ar-EG')} منتج`
                                     : `Page ${pagination.page} of ${pagination.totalPages} • ${pagination.total} products`
                                 }

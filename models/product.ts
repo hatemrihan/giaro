@@ -49,7 +49,7 @@ export type ProductListItem = Pick<
 // ─── Service ──────────────────────────────────────────────────
 
 /** Lean select for product cards in grids — minimal egress */
-const CARD_SELECT = [
+export const CARD_SELECT = [
     'id', 'slug', 'name', 'price', 'original_price', 'discount',
     'main_image', 'variants', 'stock', 'is_active', 'is_featured',
     'order', 'show_out_of_stock_badge', 'show_preorder_badge',
@@ -57,7 +57,7 @@ const CARD_SELECT = [
 ].join(', ');
 
 /** Full select for product detail pages and admin */
-const LIST_SELECT = [
+export const LIST_SELECT = [
     'id', 'slug', 'name', 'price', 'original_price', 'discount',
     'main_image', 'images', 'videos', 'description', 'promo_code',
     'variants', 'option_groups', 'stock', 'sizes', 'is_active', 'is_featured',
@@ -68,7 +68,7 @@ const LIST_SELECT = [
 ].join(', ');
 
 /** Minimal select for stock polling — avoids all heavy JSONB columns */
-const STOCK_SELECT = 'stock, variants';
+export const STOCK_SELECT = 'stock, variants';
 
 /**
  * Fetch paginated active products for the storefront.
