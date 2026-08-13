@@ -341,7 +341,7 @@ export default function TrySection() {
                     </div>
 
                     {/* Product names strip below */}
-                    <div className={`flex justify-center gap-4 sm:gap-6 mt-6 flex-wrap transition-all duration-700 delay-300 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                    <div className={`flex justify-center gap-6 sm:gap-6 mt-6 flex-wrap transition-all duration-700 delay-300 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                         {products.map((p) => (
                             <Link
                                 key={p.id}
