@@ -20,7 +20,8 @@ export async function GET() {
                 instaPayEnabled: settings.insta_pay_enabled,
             }
         }, {
-            headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' }
+            // Admin-only response — must never land in a shared CDN cache.
+            headers: { 'Cache-Control': 'private, no-store' }
         });
 
     } catch (error) {

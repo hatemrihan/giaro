@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveOffers } from '@/models/offer';
 import { cached } from '@/lib/cache';
+import { publicCacheHeaders } from '@/lib/http-cache';
 
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
@@ -19,9 +20,11 @@ export async function GET(req: NextRequest) {
         const offers = await cached(cacheKey, CACHE_TTL, () => getActiveOffers({ page, limit }));
 
         return NextResponse.json(offers, {
-            headers: {
-                'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300',
-            },
+            headers: publicCacheHeaders({
+                sMaxAge: 120,
+                staleWhileRevalidate: 300,
+                varyQuery: ['page', 'limit'],
+            }),
         });
     } catch (error) {
         console.error('❌ Offers fetch error:', error);

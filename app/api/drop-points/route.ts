@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getActiveDropPoints, getNearbyDropPoints } from '@/models/dropPoint';
+import { publicCacheHeaders } from '@/lib/http-cache';
 
 /**
  * GET /api/drop-points
@@ -25,7 +26,13 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(
             { success: true, points },
-            { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } },
+            {
+                headers: publicCacheHeaders({
+                    sMaxAge: 300,
+                    staleWhileRevalidate: 600,
+                    varyQuery: ['lat', 'lng'],
+                }),
+            },
         );
     } catch (error) {
         console.error('[GET /api/drop-points]', error);

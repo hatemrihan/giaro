@@ -22,34 +22,11 @@
   [headers.values]
     Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
 
-# ── API: Cacheable Public Data ─────────────────────────────────
-# Categories change rarely — cache 2 min, serve stale up to 5 min
-[[headers]]
-  for = "/api/categories"
-  [headers.values]
-    Cache-Control = "public, s-maxage=120, stale-while-revalidate=300"
-
-# Product listings — cache 1 min, serve stale up to 2 min
-[[headers]]
-  for = "/api/products"
-  [headers.values]
-    Cache-Control = "public, s-maxage=60, stale-while-revalidate=120"
-
-# Offers — cache 2 min
-[[headers]]
-  for = "/api/offers"
-  [headers.values]
-    Cache-Control = "public, s-maxage=120, stale-while-revalidate=300"
-
-# Governorate pricing — changes very rarely, cache 5 min
-[[headers]]
-  for = "/api/governorate-pricing"
-  [headers.values]
-    Cache-Control = "public, s-maxage=300, stale-while-revalidate=600"
-
-# Drop points — changes rarely, cache 5 min
-[[headers]]
-  for = "/api/drop-points"
-  [headers.values]
-    Cache-Control = "public, s-maxage=300, stale-while-revalidate=600"
+# ── API caching ────────────────────────────────────────────────
+# API cache headers are set by the route handlers themselves via
+# lib/http-cache.ts, which pairs Cache-Control with Netlify-Vary.
+# Do NOT add Cache-Control for /api/* here: Netlify's CDN ignores
+# query strings in its cache key unless Netlify-Vary declares them,
+# so a bare Cache-Control serves one category's products to every
+# category (the "clicked Dates, got Candy" bug).
 

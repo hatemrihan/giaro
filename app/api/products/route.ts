@@ -3,6 +3,7 @@ import { getAllCategories } from '@/models/category';
 import { NextRequest, NextResponse } from 'next/server';
 import { getStoreSettings } from '@/lib/settings';
 import { cached } from '@/lib/cache';
+import { publicCacheHeaders } from '@/lib/http-cache';
 
 const VALID_SORTS = ['newest', 'price-asc', 'price-desc'] as const;
 type Sort = typeof VALID_SORTS[number];
@@ -54,9 +55,11 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(result, {
-            headers: {
-                'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
-            },
+            headers: publicCacheHeaders({
+                sMaxAge: 60,
+                staleWhileRevalidate: 120,
+                varyQuery: ['page', 'limit', 'category', 'sort', 'featured'],
+            }),
         });
     } catch (error) {
         console.error('[GET /api/products]', error);
